@@ -1,0 +1,15 @@
+version: '3.9'
+
+services:
+  victoriametrics:
+    container_name: victoriametrics
+    image: victoriametrics/victoria-metrics:v1.78.1
+    ports:
+      - "8428:8428"
+    volumes:
+      - /storage
+    command:
+      - '--storageDataPath=/storage'
+      - '--httpListenAddr=:8428'
+      - '--retentionPeriod=600'
+    restart: always
