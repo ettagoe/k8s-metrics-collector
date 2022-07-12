@@ -1,21 +1,15 @@
 import json
 import urllib.parse
 
+from src.agent.config_provider import config_provider
 from src.agent.metrics_retriever import PrometheusMetricsRetriever
 from src.agent.offset_manager import OffsetManager
 from src.agent.prometheus_client import PrometheusClient
 
 
+o = OffsetManager(1657284343)
 c = PrometheusClient('http://localhost:8428')
-queries = {
-    'anton': '''
-    sum(
-          (1 - sum without (mode) (rate(node_cpu_seconds_total{job="node-exporter", mode=~"idle|iowait|steal", instance="10.224.0.4:9100"}[3600s])))
-        / ignoring(cpu) group_left count without (cpu, mode) (node_cpu_seconds_total{job="node-exporter", mode="idle", instance="10.224.0.4:9100"})
-    ) by (instance)
-'''
-}
-m_ret = PrometheusMetricsRetriever(c, queries, OffsetManager())
+m_ret = PrometheusMetricsRetriever(c, config_provider['metric_queries'], o)
 res = m_ret.get_metrics()
 
 start_timestamp = 1657282975 - 86400
@@ -23,6 +17,8 @@ start_timestamp = 1657282975 - 86400
 query = 'node_cpu_seconds_total{job="node-exporter", mode=~"idle|iowait|steal"}[36000s]))) / ignoring(cpu) group_left count without (cpu, mode) (node_cpu_seconds_total{job="node-exporter", mode="idle"})) by (instance)'
 query = urllib.parse.quote_plus(query)
 t = 1
+
+exit()
 
 # with open('test-datasets/raw_victoria.jsonl') as f:§
 #     res = f.read()

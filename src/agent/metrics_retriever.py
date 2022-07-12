@@ -20,9 +20,11 @@ class PrometheusMetricsRetriever(MetricsRetriever):
         metrics = {}
         for metric, query in self.metric_queries.items():
             try:
-                res = self.client.query(query, self.offset_manager.get_offset())
+                # todo put interval into query
+                res = self.client.query(query, self.offset_manager.get_offset(metric))
             except prometheus_client.RequestException as e:
-                # todo log
+                # todo log, monitor
+                # todo retry, what if it fails contantly?
                 continue
             metrics[metric] = res
         # todo update offset

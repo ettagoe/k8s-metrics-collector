@@ -18,6 +18,8 @@ def main():
 
     # todo it has side effects since it updates offset_manager... well, maybe it's okay? I just call get_metrics..
     # todo or depend on externally provided interval? single responsibility?
+    # todo we should iterate over all metrics until their offset is greater than the current time
+    # todo and send metrics in batches, so most likely I need to move offset out from retriever
     metrics_retriever = PrometheusMetricsRetriever(
         prometheus_client,
         config_provider['metric_queries'],
