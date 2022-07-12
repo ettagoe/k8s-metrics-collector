@@ -3,7 +3,7 @@ from abc import abstractmethod, ABC
 
 class DataSender(ABC):
     @abstractmethod
-    def send(self, path_to_files):
+    def send(self, data):
         pass
 
 
@@ -13,5 +13,5 @@ class S3DataSender(DataSender):
         self.s3_key = s3_key
         self.s3_region = s3_region
 
-    def send(self, path_to_files):
+    def send(self, data):
         pass

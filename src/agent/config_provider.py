@@ -21,7 +21,8 @@ class _ConfigProvider:
             # todo metric config loader?
             'metric_queries': self._get_metric_queries(metrics),
             'metric_groups': self._get_metric_queries(metrics),
-            'offset_storage_path': constants.OFFSET_STORAGE_PATH,
+            'offset_file_path': constants.OFFSET_FILE_PATH,
+            'state_file_path': constants.STATE_FILE_PATH,
             'interval': '1h',
         }
         self._load_config()

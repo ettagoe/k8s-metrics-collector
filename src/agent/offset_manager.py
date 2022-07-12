@@ -8,14 +8,12 @@ class OffsetManager:
     def __init__(self, initial_offset: int = None):
         # todo move config provider out?
         self.interval = agent_time.Interval(config_provider['interval'])
-        self.offsets = repository.get_offsets()
+        self.offset = repository.get_offset()
         # - 10 give some margin
         self.base_offset = initial_offset or int(time.time()) - 10
 
-    def get_offset(self, key: str) -> int:
-        if key not in self.offsets:
-            self.offsets[key] = self.base_offset
-        return self.offsets[key]
+    def get_offset(self) -> int:
+        return self.offset or self.base_offset
 
-    def increment_offset(self, key: str):
-        self.offsets[key] += self.get_offset(key) + self.interval.total_seconds()
+    def increment_offset(self):
+        self.offset += self.get_offset() + self.interval.total_seconds()

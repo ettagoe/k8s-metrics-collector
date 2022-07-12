@@ -2,15 +2,27 @@ import json
 import urllib.parse
 
 from src.agent.config_provider import config_provider
+from src.agent.data_sender import S3DataSender
+from src.agent.director import Director
 from src.agent.metrics_retriever import PrometheusMetricsRetriever
 from src.agent.offset_manager import OffsetManager
 from src.agent.prometheus_client import PrometheusClient
-
+from src.agent.time import Interval
+from src.agent.transformer import Transformer
 
 o = OffsetManager(1657284343)
 c = PrometheusClient('http://localhost:8428')
-m_ret = PrometheusMetricsRetriever(c, config_provider['metric_queries'], o)
-res = m_ret.get_metrics()
+m_ret = PrometheusMetricsRetriever(c)
+t = Transformer(config_provider['metric_groups'])
+sender = S3DataSender('bucket', 's3_key', 'us')
+offset_manager = OffsetManager()
+
+d = Director(m_ret, t, sender, offset_manager, Interval(config_provider['interval']), config_provider['metric_queries'])
+res = d.should_run()
+
+t = 1
+
+exit()
 
 start_timestamp = 1657282975 - 86400
 

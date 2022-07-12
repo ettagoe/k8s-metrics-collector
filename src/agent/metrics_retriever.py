@@ -1,31 +1,28 @@
 from abc import ABC, abstractmethod
 
 from src.agent import prometheus_client
-from src.agent.offset_manager import OffsetManager
+from src.agent.time import Interval
 
 
 class MetricsRetriever(ABC):
-    def __init__(self, client, metrics_queries: dict, offset_manager: OffsetManager):
+    def __init__(self, client):
         self.client = client
-        self.metric_queries = metrics_queries
-        self.offset_manager = offset_manager
 
     @abstractmethod
-    def get_metrics(self):
+    def fetch_metrics(self, metrics: dict, interval: Interval):
         pass
 
 
 class PrometheusMetricsRetriever(MetricsRetriever):
-    def get_metrics(self):
+    def fetch_metrics(self, metrics: dict, timestamp_till: int):
         metrics = {}
-        for metric, query in self.metric_queries.items():
+        for metric, query in metrics.items():
             try:
                 # todo put interval into query
-                res = self.client.query(query, self.offset_manager.get_offset(metric))
+                res = self.client.query(query, timestamp_till)
             except prometheus_client.RequestException as e:
                 # todo log, monitor
                 # todo retry, what if it fails contantly?
                 continue
             metrics[metric] = res
-        # todo update offset
         return metrics
