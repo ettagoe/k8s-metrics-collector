@@ -2,9 +2,8 @@ import json
 import os
 import time
 
-from enum import Enum
-
 from src.agent import repository
+from src.agent.config_provider import config_provider
 from src.agent.data_sender import DataSender
 from src.agent.metrics_retriever import MetricsRetriever
 from src.agent.offset_manager import OffsetManager
@@ -16,6 +15,54 @@ class Stages:
     RETRIEVE = 'retrieve'
     TRANSFORM = 'transform'
     SEND = 'send'
+
+
+class State:
+    def __init__(self, stage: str):
+        self.stage = stage
+        self.items = self._get_items()
+        self._load_items_state()
+
+    def to_dict(self):
+        # todo I don't need to keep items? I load them every time
+        return {
+            'stage': self.stage,
+        }
+
+    @staticmethod
+    def from_json(json_data: dict):
+        return State(json_data['stage'])
+
+    @staticmethod
+    def initial_state():
+        return State(stage=Stages.RETRIEVE)
+
+    def increment_stage(self):
+        if self.stage == Stages.RETRIEVE:
+            self.stage = Stages.TRANSFORM
+        elif self.stage == Stages.TRANSFORM:
+            self.stage = Stages.SEND
+        elif self.stage == Stages.SEND:
+            self.stage = Stages.RETRIEVE
+        self.items = self._get_items()
+        repository.save_state(self)
+
+    def _get_current_stage_dir(self):
+        if self.stage == Stages.RETRIEVE:
+            return config_provider['metrics_dir']
+        elif self.stage in [Stages.TRANSFORM, Stages.SEND]:
+            return config_provider['grouped_metrics_dir']
+
+    def _get_items(self):
+        if self.stage == Stages.RETRIEVE:
+            return list(config_provider['metric_queries'].keys())
+        elif self.stage in [Stages.TRANSFORM, Stages.SEND]:
+            return list(config_provider['metric_groups'].keys())
+
+    def _load_items_state(self):
+        if self.stage == Stages.RETRIEVE:
+            for file in os.listdir(self._get_current_stage_dir()):
+                self.items.pop(self.items.index(file))
 
 
 class Director:
@@ -34,21 +81,12 @@ class Director:
         self.data_sender = data_sender
         self.transformer = transformer
         self.offset_manager = offset_manager
-        self.metrics_dir = self.state.get('metrics_dir')
-        self.grouped_metrics_dir = self.state.get('grouped_metrics_dir')
+        self.grouped_metrics_dir = config_provider['grouped_metrics_dir']
         self.metric_queries = metric_queries
 
     @property
     def stage(self) -> str:
-        return self.state['stage']
-
-    @stage.setter
-    def stage(self, stage: str):
-        self.state['stage'] = stage
-
-    @property
-    def metrics_to_fetch(self) -> dict:
-        return self.state['metrics_to_fetch'] if 'metrics_to_fetch' in self.state else self.metric_queries
+        return self.state.stage
 
     def run(self):
         if self.stage == Stages.RETRIEVE:
@@ -68,29 +106,46 @@ class Director:
         )
 
     @staticmethod
-    def _get_state() -> dict:
+    def _get_state() -> State:
         # todo test empty config
         if state := repository.get_state():
             return state
-        state = {
-            'stage': Stages.RETRIEVE,
-        }
+        state = State.initial_state()
         repository.save_state(state)
         return state
 
     def _retrieve(self):
-        self.metrics_dir = self.metrics_retriever.fetch_metrics(self.metrics_to_fetch, self.interval)
-        self._increment_stage()
+        self.metrics_retriever.fetch_metrics(
+            config_provider['metric_queries'],
+            self.offset_manager.get_offset(),
+            self.interval
+        )
+        self.state.increment_stage()
 
     def _transform(self):
-        self.grouped_metrics_dir = self.transformer.group_metrics(self.metrics_dir)
-        self._increment_stage()
+        metrics = {}
+        for file in os.listdir(config_provider['metrics_dir']):
+            with open(os.path.join(config_provider['metrics_dir'], file), 'r') as f:
+                metrics[file] = json.load(f)
+
+        grouped_metrics = self.transformer.group_metrics(metrics)
+        for group, metrics in grouped_metrics.items():
+            with open(os.path.join(self.grouped_metrics_dir, group), 'w') as f:
+                json.dump(metrics, f)
+
+        self.state.increment_stage()
+        self._clear_metrics_dir()
+
+    @staticmethod
+    def _clear_metrics_dir():
+        for file in os.listdir(config_provider['metrics_dir']):
+            os.remove(os.path.join(config_provider['metrics_dir'], file))
 
     def _send(self):
-        for file_name, group in self._load_grouped_metrics().items():
+        for file_name, group in self._load_grouped_metrics():
             self.data_sender.send(group)
             self._delete_sent_group(file_name)
-        self._increment_stage()
+        self.state.increment_stage()
 
     def _load_grouped_metrics(self) -> dict:
         for file in os.listdir(self.grouped_metrics_dir):
@@ -99,13 +154,3 @@ class Director:
 
     def _delete_sent_group(self, file_name: str):
         os.remove(os.path.join(self.grouped_metrics_dir, file_name))
-
-    def _increment_stage(self):
-        # todo add other things to state?
-        if self.stage == Stages.RETRIEVE:
-            self.stage = Stages.TRANSFORM
-        elif self.stage == Stages.TRANSFORM:
-            self.stage = Stages.SEND
-        elif self.stage == Stages.SEND:
-            self.stage = Stages.RETRIEVE
-        repository.save_state(self.state)

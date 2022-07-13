@@ -10,15 +10,15 @@ from src.agent.prometheus_client import PrometheusClient
 from src.agent.time import Interval
 from src.agent.transformer import Transformer
 
-o = OffsetManager(1657284343)
+o = OffsetManager(config_provider['initial_offset'])
 c = PrometheusClient('http://localhost:8428')
 m_ret = PrometheusMetricsRetriever(c)
 t = Transformer(config_provider['metric_groups'])
 sender = S3DataSender('bucket', 's3_key', 'us')
-offset_manager = OffsetManager()
 
-d = Director(m_ret, t, sender, offset_manager, Interval(config_provider['interval']), config_provider['metric_queries'])
-res = d.should_run()
+d = Director(m_ret, t, sender, o, Interval(config_provider['interval']), config_provider['metric_queries'])
+if d.should_run():
+    d.run()
 
 t = 1
 

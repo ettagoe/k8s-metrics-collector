@@ -5,7 +5,10 @@ class Transformer:
     def group_metrics(self, metrics: dict) -> dict:
         grouped = {}
         for metric_name, values in metrics.items():
-            grouped[self._get_group_name(metric_name)][metric_name] = values
+            group_name = self._get_group_name(metric_name)
+            if group_name not in grouped:
+                grouped[group_name] = {}
+            grouped[group_name][metric_name] = values
         return grouped
 
     def _get_group_name(self, metric_name: str) -> str:
