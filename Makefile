@@ -1,12 +1,12 @@
-all: run-victoria _setup-victoria
+all: run-all _setup-victoria
 
 rerun: _clean-docker-volumes all
 
 _clean-docker-volumes:
 	docker-compose down -v --remove-orphans
 
-run-victoria:
-	docker-compose up -d victoriametrics
+run-all:
+	docker-compose up -d
 	sleep 15
 
 _setup-victoria:

@@ -13,3 +13,11 @@ services:
       - '--httpListenAddr=:8428'
       - '--retentionPeriod=600'
     restart: always
+
+  dummy_destination:
+    build: containers/dummy_destination
+    container_name: dd
+    volumes:
+      - ./containers/dummy_destination/output:/app/output
+    ports:
+      - "8080:80"
