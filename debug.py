@@ -1,8 +1,8 @@
 import json
 import urllib.parse
 
+from src.agent import factory
 from src.agent.config_provider import config_provider
-from src.agent.data_sender import S3DataSender
 from src.agent.director import Director
 from src.agent.metrics_retriever import PrometheusMetricsRetriever
 from src.agent.offset_manager import OffsetManager
@@ -14,7 +14,7 @@ o = OffsetManager(config_provider['initial_offset'])
 c = PrometheusClient('http://localhost:8428')
 m_ret = PrometheusMetricsRetriever(c)
 t = Transformer(config_provider['metric_groups'])
-sender = S3DataSender('bucket', 's3_key', 'us')
+sender = factory.get_sender()
 
 d = Director(m_ret, t, sender, o, Interval(config_provider['interval']), config_provider['metric_queries'])
 if d.should_run():

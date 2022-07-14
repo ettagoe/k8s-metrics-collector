@@ -1,3 +1,4 @@
+import os
 from typing import Optional, Any
 
 from src.agent import constants
@@ -31,6 +32,8 @@ class _ConfigProvider:
             'initial_offset': 1657284343,
             'metrics_dir': constants.METRICS_DIR,
             'grouped_metrics_dir': constants.GROUPED_METRICS_DIR,
+            # todo prod by default?
+            'environment': os.environ.get('ENVIRONMENT', 'dev'),
         }
         self._load_config()
 

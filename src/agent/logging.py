@@ -6,7 +6,8 @@ from logging.handlers import RotatingFileHandler
 from src.agent.config_provider import config_provider
 
 
-def get_logger(name, level=None, stdout=False):
+# todo level
+def get_logger(name, level=None, stdout=False) -> logging.Logger:
     logger = logging.getLogger(name)
     if level:
         logger.setLevel(level)

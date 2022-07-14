@@ -130,7 +130,11 @@ class Director:
 
         grouped_metrics = self.transformer.group_metrics(metrics)
         for group, metrics in grouped_metrics.items():
-            with open(os.path.join(self.grouped_metrics_dir, group), 'w') as f:
+            file_name = os.path.join(
+                self.grouped_metrics_dir,
+                f'{group}_{self.offset_manager.get_offset()}_{self.interval.total_seconds()}'
+            )
+            with open(file_name, 'w') as f:
                 json.dump(metrics, f)
 
         self.state.increment_stage()
@@ -142,15 +146,10 @@ class Director:
             os.remove(os.path.join(config_provider['metrics_dir'], file))
 
     def _send(self):
-        for file_name, group in self._load_grouped_metrics():
-            self.data_sender.send(group)
-            self._delete_sent_group(file_name)
+        for file in os.listdir(self.grouped_metrics_dir):
+            self.data_sender.send_file(os.path.join(self.grouped_metrics_dir, file))
+            self._delete_sent_file(file)
         self.state.increment_stage()
 
-    def _load_grouped_metrics(self) -> dict:
-        for file in os.listdir(self.grouped_metrics_dir):
-            with open(os.path.join(self.grouped_metrics_dir, file), 'r') as f:
-                yield file, json.load(f)
-
-    def _delete_sent_group(self, file_name: str):
+    def _delete_sent_file(self, file_name: str):
         os.remove(os.path.join(self.grouped_metrics_dir, file_name))
