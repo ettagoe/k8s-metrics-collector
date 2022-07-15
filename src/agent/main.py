@@ -9,9 +9,11 @@ from src.agent.transformer import Transformer
 
 
 def main():
+    # todo src/agent/data/grouped_metrics and src/agent/data/metrics might not exist
+
     # don't forget to process errors and send monitoring data
     prometheus_client = PrometheusAsyncClient(config_provider.get('prometheus_url'))
-    metrics_retriever = PrometheusMetricsRetriever(prometheus_client)
+    metrics_retriever = PrometheusMetricsRetriever(prometheus_client, config_provider.get('prometheus_url'))
     transformer = Transformer(config_provider['metric_groups'])
     offset_manager = OffsetManager()
 

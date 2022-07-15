@@ -53,16 +53,19 @@ class State:
         elif self.stage in [Stages.TRANSFORM, Stages.SEND]:
             return config_provider['grouped_metrics_dir']
 
-    def _get_items(self):
+    def _get_items(self) -> dict:
         if self.stage == Stages.RETRIEVE:
-            return list(config_provider['metric_queries'].keys())
+            return config_provider['metric_queries']
         elif self.stage in [Stages.TRANSFORM, Stages.SEND]:
-            return list(config_provider['metric_groups'].keys())
+            return config_provider['metric_groups']
 
     def _load_items_state(self):
         if self.stage == Stages.RETRIEVE:
             for file in os.listdir(self._get_current_stage_dir()):
-                self.items.pop(self.items.index(file))
+                self.items.pop(file)
+        if self.stage == Stages.TRANSFORM:
+            for file in os.listdir(self._get_current_stage_dir()):
+                self.items.pop(file.split('_')[0])
 
 
 class Director:
@@ -119,7 +122,7 @@ class Director:
 
     def _retrieve(self):
         self.metrics_retriever.async_get_all(
-            config_provider['metric_queries'],
+            self.state.items,
             self.offset_manager.get_offset(),
             self.interval
         )

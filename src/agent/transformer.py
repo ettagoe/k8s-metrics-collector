@@ -1,6 +1,6 @@
 class Transformer:
     def __init__(self, metric_groups: dict):
-        self.metric_groups = metric_groups
+        self.metric_groups = metric_groups.copy()
 
     def group_metrics(self, metrics: dict) -> dict:
         grouped = {}

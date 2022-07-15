@@ -52,6 +52,7 @@ class PrometheusMetricsRetriever(MetricsRetriever):
         async def get_all():
             async with aiohttp.ClientSession() as session:
                 for metric, query in metrics.items():
+                    # todo if it fails after one query, it requests it again
                     params = {'query': self._build_query(query, interval)}
                     if timestamp_till:
                         params['time'] = timestamp_till
