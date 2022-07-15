@@ -34,6 +34,7 @@ class _ConfigProvider:
             'grouped_metrics_dir': constants.GROUPED_METRICS_DIR,
             # todo prod by default?
             'environment': os.environ.get('ENVIRONMENT', 'dev'),
+            'max_concurrent_requests': 10,
         }
         self._load_config()
 

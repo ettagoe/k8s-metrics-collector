@@ -3,14 +3,14 @@ from src.agent.config_provider import config_provider
 from src.agent.director import Director
 from src.agent.metrics_retriever import PrometheusMetricsRetriever
 from src.agent.offset_manager import OffsetManager
-from src.agent.prometheus_client import PrometheusClient
+from src.agent.prometheus_client import PrometheusAsyncClient
 from src.agent.time import Interval
 from src.agent.transformer import Transformer
 
 
 def main():
     # don't forget to process errors and send monitoring data
-    prometheus_client = PrometheusClient(config_provider.get('prometheus_url'))
+    prometheus_client = PrometheusAsyncClient(config_provider.get('prometheus_url'))
     metrics_retriever = PrometheusMetricsRetriever(prometheus_client)
     transformer = Transformer(config_provider['metric_groups'])
     offset_manager = OffsetManager()

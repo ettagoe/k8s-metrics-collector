@@ -115,7 +115,7 @@ class Director:
         return state
 
     def _retrieve(self):
-        self.metrics_retriever.fetch_metrics(
+        self.metrics_retriever.async_get_all(
             config_provider['metric_queries'],
             self.offset_manager.get_offset(),
             self.interval

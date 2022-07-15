@@ -6,13 +6,13 @@ from src.agent.config_provider import config_provider
 from src.agent.director import Director
 from src.agent.metrics_retriever import PrometheusMetricsRetriever
 from src.agent.offset_manager import OffsetManager
-from src.agent.prometheus_client import PrometheusClient
+from src.agent.prometheus_client import PrometheusAsyncClient
 from src.agent.time import Interval
 from src.agent.transformer import Transformer
 
 o = OffsetManager(config_provider['initial_offset'])
-c = PrometheusClient('http://localhost:8428')
-m_ret = PrometheusMetricsRetriever(c)
+c = PrometheusAsyncClient('http://localhost:8428')
+m_ret = PrometheusMetricsRetriever(c, 'http://localhost:8428')
 t = Transformer(config_provider['metric_groups'])
 sender = factory.get_sender()
 
