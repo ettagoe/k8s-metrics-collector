@@ -10,13 +10,13 @@ class _ConfigProvider:
             'node': {
                 'node_cpu_usage_total': '''
                         sum(
-                              (1 - sum without (mode) (rate(node_cpu_seconds_total{job="node-exporter", mode=~"idle|iowait|steal", instance="10.224.0.4:9100"}[3600s])))
+                              (1 - sum without (mode) (rate(node_cpu_seconds_total{job="node-exporter", mode=~"idle|iowait|steal", instance="10.224.0.4:9100"}[%INTERVAL%])))
                             / ignoring(cpu) group_left count without (cpu, mode) (node_cpu_seconds_total{job="node-exporter", mode="idle", instance="10.224.0.4:9100"})
                         ) by (instance)
                 ''',
                 # todo, what exactly should be in this query? Is it total.. or total for a period?
                 'node_network_total_bytes': '''
-                    sum_over_time(node_network_transmit_bytes_total[3600s]) + sum_over_time(node_network_receive_bytes_total[3600s])
+                    sum_over_time(node_network_transmit_bytes_total[%INTERVAL%]) + sum_over_time(node_network_receive_bytes_total[%INTERVAL%])
                 ''',
             },
         }

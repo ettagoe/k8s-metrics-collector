@@ -1,5 +1,4 @@
 import asyncio
-
 import aiohttp
 import json
 import os
@@ -35,8 +34,7 @@ class PrometheusMetricsRetriever(MetricsRetriever):
     def fetch_metrics(self, metrics: dict, timestamp_till: int, interval: Interval):
         for metric, query in metrics.items():
             try:
-                # todo put interval into query
-                res = self.client.query(query, timestamp_till)
+                res = self.client.query(self._build_query(query, interval), timestamp_till)
             except prometheus_client.RequestException as e:
                 # todo log, monitor
                 # todo retry, what if it fails constantly?
@@ -48,13 +46,13 @@ class PrometheusMetricsRetriever(MetricsRetriever):
     def _get_file_path(self, metric_name: str):
         return os.path.join(self.metrics_dir, metric_name)
 
-    def async_get_all(self, metrics, timestamp_till, interval):
+    def async_get_all(self, metrics: dict, timestamp_till: int, interval: Interval):
         sema = asyncio.Semaphore(config_provider['max_concurrent_requests'])
 
         async def get_all():
             async with aiohttp.ClientSession() as session:
                 for metric, query in metrics.items():
-                    params = {'query': query}
+                    params = {'query': self._build_query(query, interval)}
                     if timestamp_till:
                         params['time'] = timestamp_till
                     async with sema, session.get(
@@ -72,6 +70,10 @@ class PrometheusMetricsRetriever(MetricsRetriever):
                             f.write(json.dumps(data))
 
         return sync.async_to_sync(get_all)()
+
+    @staticmethod
+    def _build_query(query: str, interval: Interval) -> str:
+        return query.replace('%INTERVAL%', str(interval))
 
 
 class RequestException(Exception):
