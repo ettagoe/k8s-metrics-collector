@@ -3,3 +3,7 @@ old/
 logs/
 __pycache__/
 output/
+src/agent/data/grouped_metrics/*
+src/agent/data/metrics/*
+src/agent/data/offsets.json
+src/agent/data/state.json

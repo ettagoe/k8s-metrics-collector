@@ -98,6 +98,9 @@ class Director:
         if self.stage == Stages.SEND:
             self._send()
 
+        self.offset_manager.increment_offset()
+        repository.save_offset(self.offset_manager.get_offset())
+
     def should_run(self) -> bool:
         # todo time.time(), potential problems with timezones?
         return (

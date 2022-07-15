@@ -17,7 +17,7 @@ class OffsetManager:
         return self._offset or self._base_offset
 
     def increment_offset(self):
-        self._offset += self.get_offset() + self.interval.total_seconds()
+        self._offset = self.get_offset() + self.interval.total_seconds()
 
     def _get_offset(self):
         if offset := repository.get_offset():
