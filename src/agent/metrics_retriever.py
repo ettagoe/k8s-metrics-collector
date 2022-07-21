@@ -7,7 +7,6 @@ import os
 
 from abc import ABC, abstractmethod
 from urllib.parse import urljoin
-from asgiref import sync
 
 from src.agent.config_provider import config_provider
 from src.agent.time import Interval
@@ -35,34 +34,35 @@ class PrometheusAsyncMetricsRetriever(MetricsRetriever):
     def fetch_all(self, metrics: dict, timestamp_till: int, interval: Interval):
         sema = asyncio.Semaphore(self.max_concurrent_requests)
 
-        async def get_all():
+        async def get(metric, query):
             async with aiohttp.ClientSession() as session:
-                # todo are you sure it runs async?)
-                for metric, query in metrics.items():
-                    start = time.time()
-                    # await asyncio.sleep(2)
-                    # todo if it fails after one query, it requests it again
-                    # todo retry??
-                    params = {'query': self._build_query(query, interval)}
-                    if timestamp_till:
-                        params['time'] = timestamp_till
-                    async with sema, session.get(
-                            self.url,
-                            params=params,
-                            headers={'Accept-Encoding': 'deflate'},
-                            timeout=self.request_timeout,
-                    ) as res:
-                        res.raise_for_status()
-                        res = await res.json()
-                        if res['status'] != 'success':
-                            raise RequestException(f'Prometheus query failed: {res}')
-                        data = res['data']['result']
-                        with open(self._get_file_path(metric), 'w') as f:
-                            f.write(json.dumps(data))
+                start = time.time()
+                # todo if it fails after one query, it requests it again
+                # todo retry??
+                params = {'query': self._build_query(query, interval)}
+                if timestamp_till:
+                    params['time'] = timestamp_till
+                async with sema, session.get(
+                        self.url,
+                        params=params,
+                        headers={'Accept-Encoding': 'deflate'},
+                        timeout=self.request_timeout,
+                ) as res:
+                    res.raise_for_status()
+                    res = await res.json()
+                    if res['status'] != 'success':
+                        raise RequestException(f'Prometheus query failed: {res}')
+                    data = res['data']['result']
+                    with open(self._get_file_path(metric), 'w') as f:
+                        f.write(json.dumps(data))
 
-                    print(f'{metric} took {time.time() - start}')
+                print(f'{metric} took {time.time() - start}')
 
-        return sync.async_to_sync(get_all)()
+        loop = asyncio.get_event_loop()
+        tasks = []
+        for m, q in metrics.items():
+            tasks.append(get(m, q))
+        loop.run_until_complete(asyncio.wait(tasks))
 
     @staticmethod
     def _build_query(query: str, interval: Interval) -> str:

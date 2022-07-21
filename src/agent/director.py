@@ -98,7 +98,8 @@ class Director:
             logger.info('Running stage: retrieve')
             self._retrieve()
             logger.info('Finished stage: retrieve')
-
+        # todo remove
+        exit()
         if self.stage == Stages.TRANSFORM:
             logger.info('Running stage: transform')
             self._transform()

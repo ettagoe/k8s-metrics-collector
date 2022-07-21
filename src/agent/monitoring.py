@@ -1,7 +1,7 @@
+import asyncio
 import time
 import aiohttp
 
-from asgiref import sync
 from urllib.parse import urljoin
 
 from src.agent import factory, tools
@@ -26,23 +26,23 @@ def _get_monitoring_client():
 
 def iteration_started():
     # todo maybe I should send right away? what if it hangs and metrics won't be sent?
-    _get_monitoring_client().push('iteration_start_time', 1)
+    _get_monitoring_client().push('iteration_started', 1)
 
 
 def app_execution_duration(execution_time_seconds: float):
-    _get_monitoring_client().push('execution_time', execution_time_seconds)
+    _get_monitoring_client().push('app_execution_duration', execution_time_seconds)
 
 
 def query_execution_duration(query_id: int, execution_time: float):
-    _get_monitoring_client().push('query_execution_time', execution_time, query=query_id)
+    _get_monitoring_client().push('query_execution_duration', execution_time, query=query_id)
 
 
 def transformation_duration(transformation_time_seconds: float):
-    _get_monitoring_client().push('transformation_time', transformation_time_seconds)
+    _get_monitoring_client().push('transformation_duration', transformation_time_seconds)
 
 
 def file_sending_duration(file_sending_time_seconds: float, file_name: str):
-    _get_monitoring_client().push('file_sending_time', file_sending_time_seconds, file_name=file_name)
+    _get_monitoring_client().push('file_sending_duration', file_sending_time_seconds, file_name=file_name)
 
 
 def s3_error():
@@ -72,9 +72,17 @@ class MonitoringAsyncAnodotApiClient:
                         logger.error(f'{res["errors"]}')
 
         try:
-            return sync.async_to_sync(send)()
+            return asyncio.run(send())
         except Exception as e:
             logger.exception(e)
+
+
+class DummyMonitoringClient(MonitoringAsyncAnodotApiClient):
+    def __init__(self):
+        pass
+
+    def push(self, metric_name: str, value: float, **kwargs):
+        logger.info(f'{metric_name} = {value}')
 
 
 class InstantMonitoringClient(MonitoringAsyncAnodotApiClient):

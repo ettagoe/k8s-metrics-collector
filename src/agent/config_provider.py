@@ -42,6 +42,8 @@ class _ConfigProvider:
             'customer_name': 'anton',
             'cluster_name': 'prometheus-stack',
             'monitoring_token': os.environ.get('MONITORING_TOKEN'),
+            # todo this is temporary
+            'monitoring': 'dummy',
         }
         self._load_config()
 

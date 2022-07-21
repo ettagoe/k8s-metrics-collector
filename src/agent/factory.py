@@ -12,6 +12,8 @@ def get_sender():
 
 
 def get_monitoring_client():
+    if config_provider['monitoring'] == 'dummy':
+        return monitoring.DummyMonitoringClient()
     monitoring_type = config_provider.get('monitoring_type', monitoring.INSTANT_MONITORING)
     if monitoring_type == monitoring.INSTANT_MONITORING:
         return monitoring.InstantMonitoringClient(config_provider['monitoring_token'])
