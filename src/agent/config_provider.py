@@ -21,7 +21,7 @@ class _ConfigProvider:
             },
         }
         self.config = {
-            'prometheus_url': 'http://localhost:8428',
+            'prometheus_url': 'http://localhost:54258',
             'log_file_path': 'logs/agent.log',
             # todo metric config loader?
             'metric_queries': self._get_metric_queries(metrics),
@@ -29,12 +29,19 @@ class _ConfigProvider:
             'offset_file_path': constants.OFFSET_FILE_PATH,
             'state_file_path': constants.STATE_FILE_PATH,
             'interval': '1h',
-            'initial_offset': 1657284343,
+            # this one is for victoria
+            # 'initial_offset': 1657284343,
+            'initial_offset': 1658275200,
             'metrics_dir': constants.METRICS_DIR,
             'grouped_metrics_dir': constants.GROUPED_METRICS_DIR,
             # todo prod by default?
-            'environment': os.environ.get('ENVIRONMENT', 'dev'),
+            # todo get dev back
+            'environment': os.environ.get('ENVIRONMENT', 'production'),
             'max_concurrent_requests': 10,
+            's3_bucket': 'prometheus-agent-test',
+            'customer_name': 'anton',
+            'cluster_name': 'prometheus-stack',
+            'monitoring_token': os.environ.get('MONITORING_TOKEN'),
         }
         self._load_config()
 

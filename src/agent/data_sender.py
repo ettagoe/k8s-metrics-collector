@@ -5,9 +5,8 @@ import boto3
 from abc import abstractmethod, ABC
 from botocore.exceptions import ClientError
 
-from src.agent import logging, constants
-
-logger = logging.get_logger(__name__)
+from src.agent import constants, monitoring
+from src.agent.logging import logger
 
 
 class DataSender(ABC):
@@ -17,16 +16,15 @@ class DataSender(ABC):
 
 
 class S3DataSender(DataSender):
-    def __init__(self, bucket, s3_key, s3_region):
+    def __init__(self, bucket):
         self.bucket = bucket
-        self.s3_key = s3_key
-        self.s3_region = s3_region
 
     def send_file(self, file_name: str) -> bool:
         s3_client = boto3.client('s3')
         try:
             s3_client.upload_file(file_name, self.bucket, os.path.basename(file_name))
         except ClientError as e:
+            monitoring.s3_error()
             logger.error(e)
             return False
         return True

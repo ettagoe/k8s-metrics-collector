@@ -5,6 +5,7 @@ import time
 from src.agent import repository
 from src.agent.config_provider import config_provider
 from src.agent.data_sender import DataSender
+from src.agent.logging import logger
 from src.agent.metrics_retriever import MetricsRetriever
 from src.agent.offset_manager import OffsetManager
 from src.agent.time import Interval
@@ -24,7 +25,6 @@ class State:
         self._load_items_state()
 
     def to_dict(self):
-        # todo I don't need to keep items? I load them every time
         return {
             'stage': self.stage,
         }
@@ -46,6 +46,7 @@ class State:
             self.stage = Stages.RETRIEVE
         self.items = self._get_items()
         repository.save_state(self)
+        logger.info(f'State changed to {self.stage}')
 
     def _get_current_stage_dir(self):
         if self.stage == Stages.RETRIEVE:
@@ -92,14 +93,21 @@ class Director:
         return self.state.stage
 
     def run(self):
+        # todo what if there's no data in a file? don't send it?
         if self.stage == Stages.RETRIEVE:
+            logger.info('Running stage: retrieve')
             self._retrieve()
+            logger.info('Finished stage: retrieve')
 
         if self.stage == Stages.TRANSFORM:
+            logger.info('Running stage: transform')
             self._transform()
+            logger.info('Finished stage: transform')
 
         if self.stage == Stages.SEND:
+            logger.info('Running stage: send')
             self._send()
+            logger.info('Finished stage: send')
 
         self.offset_manager.increment_offset()
         repository.save_offset(self.offset_manager.get_offset())
@@ -113,7 +121,6 @@ class Director:
 
     @staticmethod
     def _get_state() -> State:
-        # todo test empty config
         if state := repository.get_state():
             return state
         state = State.initial_state()
@@ -121,12 +128,15 @@ class Director:
         return state
 
     def _retrieve(self):
-        self.metrics_retriever.async_get_all(
+        start = time.time()
+        self.metrics_retriever.fetch_all(
             self.state.items,
             self.offset_manager.get_offset(),
             self.interval
         )
         self.state.increment_stage()
+        print(f'Retrieved metrics in {time.time() - start} seconds')
+        exit()
 
     def _transform(self):
         metrics = {}
@@ -142,6 +152,7 @@ class Director:
             )
             with open(file_name, 'w') as f:
                 json.dump(metrics, f)
+                logger.info(f'Saved {file_name}')
 
         self.state.increment_stage()
         self._clear_metrics_dir()

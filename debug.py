@@ -1,34 +1,28 @@
+import asyncio
 import json
-import urllib.parse
+import time
 
-from src.agent import factory
-from src.agent.config_provider import config_provider
-from src.agent.director import Director
-from src.agent.metrics_retriever import PrometheusMetricsRetriever
-from src.agent.offset_manager import OffsetManager
-from src.agent.prometheus_client import PrometheusAsyncClient
-from src.agent.time import Interval
-from src.agent.transformer import Transformer
 
-o = OffsetManager(config_provider['initial_offset'])
-c = PrometheusAsyncClient('http://localhost:8428')
-m_ret = PrometheusMetricsRetriever(c, 'http://localhost:8428')
-t = Transformer(config_provider['metric_groups'])
-sender = factory.get_sender()
+async def foo(i):
+    start = time.time()
+    await asyncio.sleep(i + 1)
+    print(f'{i} took {time.time() - start}')
 
-d = Director(m_ret, t, sender, o, Interval(config_provider['interval']), config_provider['metric_queries'])
-if d.should_run():
-    d.run()
 
-t = 1
+async def main():
+    return await asyncio.gather(*[foo(i) for i in range(3)])
 
-exit()
 
-start_timestamp = 1657282975 - 86400
+start = time.time()
+asyncio.run(main())
+print(f'Took {time.time() - start}')
 
-query = 'node_cpu_seconds_total{job="node-exporter", mode=~"idle|iowait|steal"}[36000s]))) / ignoring(cpu) group_left count without (cpu, mode) (node_cpu_seconds_total{job="node-exporter", mode="idle"})) by (instance)'
-query = urllib.parse.quote_plus(query)
-t = 1
+# loop = asyncio.get_event_loop()
+# tasks = [
+#     loop.create_task(main()),
+# ]
+# loop.run_until_complete(asyncio.wait(tasks))
+# loop.close()
 
 exit()
 
