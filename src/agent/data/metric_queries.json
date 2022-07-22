@@ -1,0 +1,6 @@
+{
+  "node": {
+    "node_cpu_usage_total": "sum((1 - sum without (mode) (rate(node_cpu_seconds_total{job=\"node-exporter\", mode=~\"idle|iowait|steal\"}[%INTERVAL%]))) / ignoring(cpu) group_left count without (cpu, mode) (node_cpu_seconds_total{job=\"node-exporter\", mode=\"idle\"})) by (instance)",
+    "node_network_total_bytes": "sum_over_time(node_network_transmit_bytes_total[%INTERVAL%]) + sum_over_time(node_network_receive_bytes_total[%INTERVAL%])"
+  }
+}

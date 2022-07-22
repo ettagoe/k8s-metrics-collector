@@ -3,12 +3,14 @@ from src.agent.config_provider import config_provider
 
 
 def get_sender():
-    if config_provider['data_sender'] == 'real':
+    if config_provider['data_sender'] == 's3':
         return data_sender.S3DataSender(
             config_provider['s3_bucket'],
         )
     elif config_provider['data_sender'] == 'dummy':
         return data_sender.DummySender()
+    else:
+        raise ValueError(f'Unknown data sender type: {config_provider["data_sender"]}')
 
 
 def get_monitoring_client():

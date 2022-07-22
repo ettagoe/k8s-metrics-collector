@@ -43,3 +43,7 @@ def _run():
 
 if __name__ == '__main__':
     main()
+
+
+# for lambda I'll need to import deps from local folder
+# можно будет в вэльюс положить квери и конфигурить отдельно для каждого кастомера, можно будет писать в ямле а оно конвертнет в json
