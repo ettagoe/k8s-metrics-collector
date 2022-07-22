@@ -2,10 +2,10 @@ import json
 import os
 import time
 
-from src.agent import repository
+from src.agent import repository, monitoring
 from src.agent.config_provider import config_provider
 from src.agent.data_sender import DataSender
-from src.agent.logging import logger
+from src.agent.logger import logger
 from src.agent.metrics_retriever import MetricsRetriever
 from src.agent.offset_manager import OffsetManager
 from src.agent.time import Interval
@@ -46,7 +46,8 @@ class State:
             self.stage = Stages.RETRIEVE
         self.items = self._get_items()
         repository.save_state(self)
-        logger.info(f'State changed to {self.stage}')
+        # todo it appears earlier then previous stage finished
+        logger.info(f'Stage changed to {self.stage}')
 
     def _get_current_stage_dir(self):
         if self.stage == Stages.RETRIEVE:
@@ -95,23 +96,33 @@ class Director:
     def run(self):
         # todo what if there's no data in a file? don't send it?
         if self.stage == Stages.RETRIEVE:
+            start = time.time()
             logger.info('Running stage: retrieve')
+
             self._retrieve()
-            logger.info('Finished stage: retrieve')
-        # todo remove
-        exit()
+
+            monitoring.retrieve_stage_duration(time.time() - start)
+
         if self.stage == Stages.TRANSFORM:
+            start = time.time()
             logger.info('Running stage: transform')
+
             self._transform()
-            logger.info('Finished stage: transform')
+
+            monitoring.transform_stage_duration(time.time() - start)
+            exit()
 
         if self.stage == Stages.SEND:
+            start = time.time()
             logger.info('Running stage: send')
+
             self._send()
-            logger.info('Finished stage: send')
+
+            monitoring.send_stage_duration(time.time() - start)
 
         self.offset_manager.increment_offset()
         repository.save_offset(self.offset_manager.get_offset())
+        logger.info(f'Incremented offset to: {self.offset_manager.get_offset()}')
 
     def should_run(self) -> bool:
         # todo time.time(), potential problems with timezones?
@@ -129,15 +140,12 @@ class Director:
         return state
 
     def _retrieve(self):
-        start = time.time()
         self.metrics_retriever.fetch_all(
             self.state.items,
             self.offset_manager.get_offset(),
             self.interval
         )
         self.state.increment_stage()
-        print(f'Retrieved metrics in {time.time() - start} seconds')
-        exit()
 
     def _transform(self):
         metrics = {}
@@ -147,27 +155,27 @@ class Director:
 
         grouped_metrics = self.transformer.group_metrics(metrics)
         for group, metrics in grouped_metrics.items():
-            file_name = os.path.join(
-                self.grouped_metrics_dir,
-                f'{group}_{self.offset_manager.get_offset()}_{self.interval.total_seconds()}'
-            )
-            with open(file_name, 'w') as f:
+            file_name = f'{group}_{self.offset_manager.get_offset()}_{self.interval.total_seconds()}'
+            file_path = os.path.join(self.grouped_metrics_dir, file_name)
+            with open(file_path, 'w') as f:
                 json.dump(metrics, f)
-                logger.info(f'Saved {file_name}')
+                logger.info(f'Saved grouped metrics file `{file_name}`')
 
-        self.state.increment_stage()
         self._clear_metrics_dir()
+        self.state.increment_stage()
 
     @staticmethod
     def _clear_metrics_dir():
         for file in os.listdir(config_provider['metrics_dir']):
             os.remove(os.path.join(config_provider['metrics_dir'], file))
+            logger.info(f'Deleted raw metrics file `{file}`')
 
     def _send(self):
         for file in os.listdir(self.grouped_metrics_dir):
-            self.data_sender.send_file(os.path.join(self.grouped_metrics_dir, file))
-            self._delete_sent_file(file)
+            if self.data_sender.send_file(os.path.join(self.grouped_metrics_dir, file)):
+                self._delete_sent_file(file)
         self.state.increment_stage()
 
     def _delete_sent_file(self, file_name: str):
         os.remove(os.path.join(self.grouped_metrics_dir, file_name))
+        logger.info(f'Deleted grouped metrics file `{file_name}`')

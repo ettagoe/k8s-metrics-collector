@@ -10,8 +10,8 @@ class _ConfigProvider:
             'node': {
                 'node_cpu_usage_total': '''
                         sum(
-                              (1 - sum without (mode) (rate(node_cpu_seconds_total{job="node-exporter", mode=~"idle|iowait|steal", instance="10.224.0.4:9100"}[%INTERVAL%])))
-                            / ignoring(cpu) group_left count without (cpu, mode) (node_cpu_seconds_total{job="node-exporter", mode="idle", instance="10.224.0.4:9100"})
+                              (1 - sum without (mode) (rate(node_cpu_seconds_total{job="node-exporter", mode=~"idle|iowait|steal"}[%INTERVAL%])))
+                            / ignoring(cpu) group_left count without (cpu, mode) (node_cpu_seconds_total{job="node-exporter", mode="idle"})
                         ) by (instance)
                 ''',
                 # todo, what exactly should be in this query? Is it total.. or total for a period?
@@ -21,7 +21,7 @@ class _ConfigProvider:
             },
         }
         self.config = {
-            'prometheus_url': 'http://localhost:54258',
+            'prometheus_url': 'http://localhost:58272',
             'log_file_path': 'logs/agent.log',
             # todo metric config loader?
             'metric_queries': self._get_metric_queries(metrics),
@@ -43,7 +43,8 @@ class _ConfigProvider:
             'cluster_name': 'prometheus-stack',
             'monitoring_token': os.environ.get('MONITORING_TOKEN'),
             # todo this is temporary
-            'monitoring': 'dummy',
+            # 'monitoring': 'dummy',
+            'monitoring': 'real',
         }
         self._load_config()
 

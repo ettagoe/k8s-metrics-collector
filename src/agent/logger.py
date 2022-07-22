@@ -15,7 +15,7 @@ def get_logger(name, level=None, stdout=False) -> logging.Logger:
     # todo it used to have 'agent.log', you might need to bring it back if logs are not working
     file_handler = RotatingFileHandler(
         config_provider['log_file_path'],
-        maxBytes=config_provider.get('log_file_max_size_bytes', 5000),
+        maxBytes=config_provider.get('log_file_max_size_bytes', 10000000),
         backupCount=config_provider.get('log_file_backup_count', 5),
     )
     # file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))

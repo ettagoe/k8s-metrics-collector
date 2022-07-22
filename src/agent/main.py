@@ -1,9 +1,10 @@
+import asyncio
 import time
 
 from src.agent import factory, monitoring
 from src.agent.config_provider import config_provider
 from src.agent.director import Director
-from src.agent.logging import logger
+from src.agent.logger import logger
 from src.agent.metrics_retriever import PrometheusAsyncMetricsRetriever
 from src.agent.offset_manager import OffsetManager
 from src.agent.time import Interval
@@ -12,6 +13,7 @@ from src.agent.transformer import Transformer
 
 def main():
     try:
+        # todo it doesn't say if it sent anything, if prometheus is not reacheble logs look okay
         start = time.time()
 
         _run()
@@ -20,6 +22,10 @@ def main():
     except Exception as e:
         logger.exception(e)
         monitoring.error()
+
+    # todo test it
+    # Wait for all other tasks to finish other than the current task i.e. main().
+    # await asyncio.gather(*asyncio.all_tasks() - {asyncio.current_task()})
 
 
 def _run():
@@ -43,8 +49,10 @@ def _run():
 
     while director.should_run():
         monitoring.iteration_started()
-        logger.info(f'Starting iteration, offset: {offset_manager.get_offset()}, stage: {director.stage}, interval: {director.interval}')
+        logger.info('---- STARTING ITERATION ----')
+        logger.info(f'Offset: {offset_manager.get_offset()}, stage: {director.stage}, interval: {director.interval}')
         director.run()
+        exit()
 
 
 if __name__ == '__main__':

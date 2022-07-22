@@ -7,8 +7,10 @@ import os
 
 from abc import ABC, abstractmethod
 from urllib.parse import urljoin
+from asgiref import sync
 
 from src.agent.config_provider import config_provider
+from src.agent.logger import logger
 from src.agent.time import Interval
 
 
@@ -48,6 +50,7 @@ class PrometheusAsyncMetricsRetriever(MetricsRetriever):
                         headers={'Accept-Encoding': 'deflate'},
                         timeout=self.request_timeout,
                 ) as res:
+                    # todo log error message on 500?
                     res.raise_for_status()
                     res = await res.json()
                     if res['status'] != 'success':
@@ -56,9 +59,10 @@ class PrometheusAsyncMetricsRetriever(MetricsRetriever):
                     with open(self._get_file_path(metric), 'w') as f:
                         f.write(json.dumps(data))
 
-                print(f'{metric} took {time.time() - start}')
+                logger.info(f'{metric} took {time.time() - start}')
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         tasks = []
         for m, q in metrics.items():
             tasks.append(get(m, q))
