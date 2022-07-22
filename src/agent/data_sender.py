@@ -31,7 +31,6 @@ class S3DataSender(DataSender):
         return True
 
 
-# todo I guess I don't need dummy destination because I can write data locally, no need in a container, volumes etc.
 class DummySender(DataSender):
     def send_file(self, file_name: str) -> bool:
         output_dir = os.path.join(constants.ROOT, 'output')

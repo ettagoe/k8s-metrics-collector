@@ -2,72 +2,15 @@ import json
 import os
 import time
 
-from src.agent import repository, monitoring
+from src.agent import repository, monitoring, state
 from src.agent.config_provider import config_provider
 from src.agent.data_sender import DataSender
 from src.agent.logger import logger
 from src.agent.metrics_retriever import MetricsRetriever
 from src.agent.offset_manager import OffsetManager
+from src.agent.state import State
 from src.agent.time import Interval
 from src.agent.transformer import Transformer
-
-
-class Stages:
-    RETRIEVE = 'retrieve'
-    TRANSFORM = 'transform'
-    SEND = 'send'
-
-
-class State:
-    def __init__(self, stage: str):
-        self.stage = stage
-        self.items = self._get_items()
-        self._load_items_state()
-
-    def to_dict(self):
-        return {
-            'stage': self.stage,
-        }
-
-    @staticmethod
-    def from_json(json_data: dict):
-        return State(json_data['stage'])
-
-    @staticmethod
-    def initial_state():
-        return State(stage=Stages.RETRIEVE)
-
-    def increment_stage(self):
-        if self.stage == Stages.RETRIEVE:
-            self.stage = Stages.TRANSFORM
-        elif self.stage == Stages.TRANSFORM:
-            self.stage = Stages.SEND
-        elif self.stage == Stages.SEND:
-            self.stage = Stages.RETRIEVE
-        self.items = self._get_items()
-        repository.save_state(self)
-        # todo it appears earlier then previous stage finished
-        logger.info(f'Stage changed to {self.stage}')
-
-    def _get_current_stage_dir(self):
-        if self.stage == Stages.RETRIEVE:
-            return config_provider['metrics_dir']
-        elif self.stage in [Stages.TRANSFORM, Stages.SEND]:
-            return config_provider['grouped_metrics_dir']
-
-    def _get_items(self) -> dict:
-        if self.stage == Stages.RETRIEVE:
-            return config_provider['metric_queries']
-        elif self.stage in [Stages.TRANSFORM, Stages.SEND]:
-            return config_provider['metric_groups']
-
-    def _load_items_state(self):
-        if self.stage == Stages.RETRIEVE:
-            for file in os.listdir(self._get_current_stage_dir()):
-                self.items.pop(file)
-        if self.stage == Stages.TRANSFORM:
-            for file in os.listdir(self._get_current_stage_dir()):
-                self.items.pop(file.split('_')[0])
 
 
 class Director:
@@ -94,8 +37,8 @@ class Director:
         return self.state.stage
 
     def run(self):
-        # todo what if there's no data in a file? don't send it?
-        if self.stage == Stages.RETRIEVE:
+        # todo what if there's no data in a file? don't send it? test
+        if self.stage == state.Stages.RETRIEVE:
             start = time.time()
             logger.info('Running stage: retrieve')
 
@@ -103,16 +46,15 @@ class Director:
 
             monitoring.retrieve_stage_duration(time.time() - start)
 
-        if self.stage == Stages.TRANSFORM:
+        if self.stage == state.Stages.TRANSFORM:
             start = time.time()
             logger.info('Running stage: transform')
 
             self._transform()
 
             monitoring.transform_stage_duration(time.time() - start)
-            exit()
 
-        if self.stage == Stages.SEND:
+        if self.stage == state.Stages.SEND:
             start = time.time()
             logger.info('Running stage: send')
 
@@ -125,19 +67,18 @@ class Director:
         logger.info(f'Incremented offset to: {self.offset_manager.get_offset()}')
 
     def should_run(self) -> bool:
-        # todo time.time(), potential problems with timezones?
         return (
-                self.stage != Stages.RETRIEVE
+                self.stage != state.Stages.RETRIEVE
                 or self.offset_manager.get_offset() < time.time() - self.interval.total_seconds()
         )
 
     @staticmethod
     def _get_state() -> State:
-        if state := repository.get_state():
-            return state
-        state = State.initial_state()
-        repository.save_state(state)
-        return state
+        if state_ := repository.get_state():
+            return state_
+        state_ = State.init()
+        repository.save_state(state_)
+        return state_
 
     def _retrieve(self):
         self.metrics_retriever.fetch_all(
@@ -155,7 +96,7 @@ class Director:
 
         grouped_metrics = self.transformer.group_metrics(metrics)
         for group, metrics in grouped_metrics.items():
-            file_name = f'{group}_{self.offset_manager.get_offset()}_{self.interval.total_seconds()}'
+            file_name = f'{group}_{self.offset_manager.get_offset()}_{self.interval.total_seconds()}.json'
             file_path = os.path.join(self.grouped_metrics_dir, file_name)
             with open(file_path, 'w') as f:
                 json.dump(metrics, f)

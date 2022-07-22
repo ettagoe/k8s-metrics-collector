@@ -1,13 +1,11 @@
 import asyncio
 import time
-
 import aiohttp
 import json
 import os
 
 from abc import ABC, abstractmethod
 from urllib.parse import urljoin
-from asgiref import sync
 
 from src.agent.config_provider import config_provider
 from src.agent.logger import logger
@@ -19,12 +17,10 @@ class MetricsRetriever(ABC):
         self.metrics_dir = config_provider['metrics_dir']
         self.url = urljoin(url, '/api/v1/query')
         self.max_concurrent_requests = int(config_provider['max_concurrent_requests'])
-        # todo is timeout ok? long queries? what if it hangs?
         self.request_timeout = int(config_provider.get('request_timeout', 300))
 
     @abstractmethod
     def fetch_all(self, metrics: dict, offset: int, interval: Interval):
-        # todo this is temporary
         pass
 
 
@@ -39,8 +35,7 @@ class PrometheusAsyncMetricsRetriever(MetricsRetriever):
         async def get(metric, query):
             async with aiohttp.ClientSession() as session:
                 start = time.time()
-                # todo if it fails after one query, it requests it again
-                # todo retry??
+                # todo retry?
                 params = {'query': self._build_query(query, interval)}
                 if timestamp_till:
                     params['time'] = timestamp_till
@@ -50,7 +45,6 @@ class PrometheusAsyncMetricsRetriever(MetricsRetriever):
                         headers={'Accept-Encoding': 'deflate'},
                         timeout=self.request_timeout,
                 ) as res:
-                    # todo log error message on 500?
                     res.raise_for_status()
                     res = await res.json()
                     if res['status'] != 'success':
@@ -66,7 +60,8 @@ class PrometheusAsyncMetricsRetriever(MetricsRetriever):
         tasks = []
         for m, q in metrics.items():
             tasks.append(get(m, q))
-        loop.run_until_complete(asyncio.wait(tasks))
+
+        loop.run_until_complete(asyncio.gather(*tasks))
 
     @staticmethod
     def _build_query(query: str, interval: Interval) -> str:

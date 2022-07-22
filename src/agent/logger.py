@@ -12,7 +12,6 @@ def get_logger(name, level=None, stdout=False) -> logging.Logger:
     if level:
         logger_.setLevel(level)
 
-    # todo it used to have 'agent.log', you might need to bring it back if logs are not working
     file_handler = RotatingFileHandler(
         config_provider['log_file_path'],
         maxBytes=config_provider.get('log_file_max_size_bytes', 10000000),

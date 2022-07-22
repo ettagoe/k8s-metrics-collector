@@ -3,9 +3,8 @@ import os
 
 from typing import Optional
 
+from src.agent import state
 from src.agent.config_provider import config_provider
-# todo quick fix of a circular dependency, don't want to make another mode
-from src.agent import director
 
 
 def get_offset() -> Optional[int]:
@@ -24,17 +23,15 @@ def save_offset(offset: int):
         f.write(str(offset))
 
 
-# def get_state() -> Optional[State]:
-def get_state():
+def get_state() -> Optional[state.State]:
     state_file_path = config_provider['state_file_path']
     if os.path.isfile(state_file_path):
         with open(state_file_path, 'r') as f:
-            if state := f.read():
-                return director.State.from_json(json.loads(state))
+            if state_ := f.read():
+                return state.State.from_json(json.loads(state_))
     return None
 
 
-# def save_state(state: State):
-def save_state(state):
+def save_state(state_: state.State):
     with open(config_provider['state_file_path'], 'w') as f:
-        json.dump(state.to_dict(), f)
+        json.dump(state_.to_dict(), f)

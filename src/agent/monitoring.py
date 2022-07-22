@@ -68,9 +68,13 @@ class MonitoringAsyncAnodotApiClient:
         async def send():
             async with aiohttp.ClientSession() as session:
                 async with session.post(
-                        urljoin(self.url, '/api/v1/metrics'), json=metrics, params=self.params, verify_ssl=False
+                        urljoin(self.url, '/api/v1/metrics'),
+                        json=metrics,
+                        params=self.params,
+                        verify_ssl=False,
+                        timeout=config_provider.get('monitoring_request_timeout', 5)
                 ) as res:
-                    # todo when there's exception we don't log it's message
+                    # todo when there's exception we don't log it's message. You can test with dummy destination
                     res.raise_for_status()
                     res = await res.json()
                     if len(res['errors']) > 0:
@@ -88,7 +92,7 @@ class DummyMonitoringClient(MonitoringAsyncAnodotApiClient):
         pass
 
     @staticmethod
-    def push(metric_name: str, value: float, target_type: str, **kwargs):
+    def push(metric_name: str, value: float, target_type='', **kwargs):
         logger.info(f'{metric_name} = {value}')
 
 

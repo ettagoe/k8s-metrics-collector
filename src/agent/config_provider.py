@@ -1,4 +1,5 @@
 import os
+
 from typing import Optional, Any
 
 from src.agent import constants
@@ -21,7 +22,7 @@ class _ConfigProvider:
             },
         }
         self.config = {
-            'prometheus_url': 'http://localhost:58272',
+            'prometheus_url': 'http://localhost:58538',
             'log_file_path': 'logs/agent.log',
             # todo metric config loader?
             'metric_queries': self._get_metric_queries(metrics),
@@ -34,17 +35,16 @@ class _ConfigProvider:
             'initial_offset': 1658275200,
             'metrics_dir': constants.METRICS_DIR,
             'grouped_metrics_dir': constants.GROUPED_METRICS_DIR,
-            # todo prod by default?
-            # todo get dev back
-            'environment': os.environ.get('ENVIRONMENT', 'production'),
             'max_concurrent_requests': 10,
             's3_bucket': 'prometheus-agent-test',
             'customer_name': 'anton',
             'cluster_name': 'prometheus-stack',
             'monitoring_token': os.environ.get('MONITORING_TOKEN'),
-            # todo this is temporary
-            # 'monitoring': 'dummy',
-            'monitoring': 'real',
+            # todo this is temporary?
+            'data_sender': 'dummy',
+            'monitoring': 'dummy',
+            # 'monitoring': 'real',
+            'run_by_one_iteration': True,
         }
         self._load_config()
 
