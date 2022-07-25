@@ -3,7 +3,7 @@ import os
 
 from typing import Optional, Any
 
-from src.agent import constants
+from agent import constants
 
 
 class _ConfigProvider:

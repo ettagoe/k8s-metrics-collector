@@ -1,7 +1,7 @@
 import time
 
-from src.agent import time as agent_time, repository
-from src.agent.config_provider import config_provider
+from agent import time as agent_time, repository
+from agent.config_provider import config_provider
 
 
 class OffsetManager:

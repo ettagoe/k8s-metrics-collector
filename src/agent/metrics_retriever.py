@@ -7,9 +7,9 @@ import os
 from abc import ABC, abstractmethod
 from urllib.parse import urljoin
 
-from src.agent.config_provider import config_provider
-from src.agent.logger import logger
-from src.agent.time import Interval
+from agent.config_provider import config_provider
+from agent.logger import logger
+from agent.time import Interval
 
 
 class MetricsRetriever(ABC):

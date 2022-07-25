@@ -1,8 +1,8 @@
 import os
 
-from src.agent import repository
-from src.agent.config_provider import config_provider
-from src.agent.logger import logger
+from agent import repository
+from agent.config_provider import config_provider
+from agent.logger import logger
 
 
 class Stages:

@@ -4,9 +4,9 @@ import aiohttp
 
 from urllib.parse import urljoin
 
-from src.agent import factory, tools
-from src.agent.config_provider import config_provider
-from src.agent.logger import logger
+from agent import factory, tools
+from agent.config_provider import config_provider
+from agent.logger import logger
 
 INSTANT_MONITORING = 'instant'
 ACCUMULATIVE_MONITORING = 'accumulative'

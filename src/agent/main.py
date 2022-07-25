@@ -1,10 +1,19 @@
 import time
 
-from src.agent import factory, monitoring
-from src.agent.config_provider import config_provider
-from src.agent.logger import logger
+from agent import factory, monitoring
+from agent.config_provider import config_provider
+from agent.logger import logger
 
 
+# next steps
+# try to have a zip for lambda so that it's size is smaller
+# write a list of all metrics and queries
+# install the app in our k8s
+# decide about monitoring
+# I can put queries into values.yaml and configure separately for each customer, it will convert into json
+# todo what if it runs after 59 minutes instead of 60 minutes? it won't run, think
+# todo are files sent to s3 in a secure way?
+# todo will I be able to clean everything to rerun the app if something goes wrong on the customer side?
 def main():
     try:
         start = time.time()
@@ -17,18 +26,12 @@ def main():
         monitoring.error()
         raise e
 
+    # todo we might need a separate script for sending monitoring, because we need to send 0 if there's no errors
     # Wait for all other tasks to finish other than the current task i.e. main().
     # await asyncio.gather(*asyncio.all_tasks() - {asyncio.current_task()})
-    # todo we might need a separate script for sending monitoring, because we need to send 0 if there's no errors
 
 
 def _run():
-    # todo best way to provide configuration, discuss with Vova, env vars? file? mix?
-    # todo src/agent/data/grouped_metrics and src/agent/data/metrics might not exist
-    # todo will I be able to clean everything to rerun the app if something goes wrong on the customer side?
-
-    # todo put it all to factory?
-
     director = factory.get_director()
 
     while director.should_run():
@@ -43,7 +46,3 @@ def _run():
 
 if __name__ == '__main__':
     main()
-
-
-# for lambda I'll need to import deps from local folder
-# можно будет в вэльюс положить квери и конфигурить отдельно для каждого кастомера, можно будет писать в ямле а оно конвертнет в json

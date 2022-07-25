@@ -5,8 +5,8 @@ import boto3
 from abc import abstractmethod, ABC
 from botocore.exceptions import ClientError
 
-from src.agent import constants, monitoring
-from src.agent.logger import logger
+from agent import constants, monitoring
+from agent.logger import logger
 
 
 class DataSender(ABC):
@@ -33,7 +33,7 @@ class S3DataSender(DataSender):
 
 class DummySender(DataSender):
     def send_file(self, file_name: str) -> bool:
-        output_dir = os.path.join(constants.ROOT, 'output')
+        output_dir = os.path.join(constants.DATA_DIR, 'output')
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
         shutil.copy(file_name, output_dir)

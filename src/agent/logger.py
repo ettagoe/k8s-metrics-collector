@@ -3,7 +3,7 @@ import sys
 
 from logging.handlers import RotatingFileHandler
 
-from src.agent.config_provider import config_provider
+from agent.config_provider import config_provider
 
 
 # todo should I create separate logger in every file? I can pass name... it it will appear in logs

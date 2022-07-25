@@ -1,5 +1,5 @@
-from src.agent import data_sender, monitoring, metrics_retriever, transformer, offset_manager, director, time
-from src.agent.config_provider import config_provider
+from agent import data_sender, monitoring, metrics_retriever, transformer, offset_manager, director, time
+from agent.config_provider import config_provider
 
 
 def get_sender():

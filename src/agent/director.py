@@ -2,15 +2,15 @@ import json
 import os
 import time
 
-from src.agent import repository, monitoring, state
-from src.agent.config_provider import config_provider
-from src.agent.data_sender import DataSender
-from src.agent.logger import logger
-from src.agent.metrics_retriever import MetricsRetriever
-from src.agent.offset_manager import OffsetManager
-from src.agent.state import State
-from src.agent.time import Interval
-from src.agent.transformer import Transformer
+from agent import repository, monitoring, state
+from agent.config_provider import config_provider
+from agent.data_sender import DataSender
+from agent.logger import logger
+from agent.metrics_retriever import MetricsRetriever
+from agent.offset_manager import OffsetManager
+from agent.state import State
+from agent.time import Interval
+from agent.transformer import Transformer
 
 
 class Director:

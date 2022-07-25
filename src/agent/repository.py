@@ -3,8 +3,8 @@ import os
 
 from typing import Optional
 
-from src.agent import state
-from src.agent.config_provider import config_provider
+from agent import state
+from agent.config_provider import config_provider
 
 
 def get_offset() -> Optional[int]:
