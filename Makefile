@@ -10,9 +10,16 @@ run-victoria: _up-victoria sleep _setup-victoria
 _up-victoria:
 	docker-compose up -d victoriametrics
 
-run-all:
-	docker-compose up -d
-	sleep 15
+run-all: run-victoria
+	docker-compose up -d agent
+
+stop:
+	rm -rf data/grouped_metrics/*
+	rm -rf data/metrics/*
+	rm -rf data/output/*
+	rm data/offsets.json
+	rm data/state.json
+	docker-compose down -v --remove-orphans
 
 _setup-victoria:
 	./scripts/upload-test-data-to-victoria.sh

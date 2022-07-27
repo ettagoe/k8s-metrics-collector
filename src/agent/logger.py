@@ -7,7 +7,7 @@ from agent.config_provider import config_provider
 
 
 # todo should I create separate logger in every file? I can pass name... it it will appear in logs
-def get_logger(name, level=None, stdout=False) -> logging.Logger:
+def get_logger(name, level=None, stdout=True) -> logging.Logger:
     logger_ = logging.getLogger(name)
     if level:
         logger_.setLevel(level)

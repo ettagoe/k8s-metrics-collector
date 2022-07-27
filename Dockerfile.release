@@ -17,7 +17,7 @@ RUN mkdir /usr/src/app/data/grouped_metrics
 
 COPY ./data/metric_queries.json /usr/src/app/data/
 
-RUN python setup.py develop
+RUN python setup.py install
 RUN pip install -r requirements.txt
 
 CMD ["/usr/src/app/entry.sh"]

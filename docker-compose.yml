@@ -10,17 +10,24 @@ services:
       INITIAL_OFFSET: "1657284343"
 #      this one is for prometheus
 #      INITIAL_OFFSET: "1658275200"
-      DATA_DIR: '/usr/src/app/data'
-      S3_BUCKET: 'prometheus-agent-test'
+#      S3_REGION: 'us-east-1'
+#      S3_BUCKET: 'prometheus-agent-test'
       CUSTOMER_NAME: 'dev'
       CLUSTER_NAME: 'prometheus-stack'
-      RUN_BY_ONE_ITERATION: 'true'
+
       DATA_SENDER: 'dummy'
       MONITORING: 'dummy'
       MONITORING_TOKEN: 'dummy'
+
+      CRON_SCHEDULE: "* * * * *"
+      DATA_DIR: '/usr/src/app/data'
+      RUN_BY_ONE_ITERATION: 'true'
     volumes:
       - ./data:/usr/src/app/data
       - ./logs/:/var/log/
+      - ./src/:/usr/src/app/src/
+    depends_on:
+      - victoriametrics
 
   victoriametrics:
     container_name: victoriametrics
@@ -32,5 +39,5 @@ services:
     command:
       - '--storageDataPath=/storage'
       - '--httpListenAddr=:8428'
-      - '--retentionPeriod=1600'
+      - '--retentionPeriod=10y'
     restart: always
