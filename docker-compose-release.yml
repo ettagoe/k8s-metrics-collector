@@ -1,0 +1,25 @@
+version: '3.9'
+
+services:
+  agent:
+    build:
+      context: .
+      dockerfile: Dockerfile.release
+    container_name: agent
+    environment:
+      DATA_SENDER: 's3'
+      MONITORING: 'anodot'
+
+#     NOTICE: THESE ARE EXAMPLE VALUES, PUT ACTUAL VALUES INSTEAD
+      CLUSTER_NAME: 'cluster-name'
+      INITIAL_OFFSET: "1657284343"
+      PROMETHEUS_URL: 'http://prometheus:8428'
+      CUSTOMER_NAME: 'customer-name'
+      S3_REGION: 'your-region'
+      S3_BUCKET: 'your-bucket'
+      AWS_ACCESS_KEY_ID: 'your-access-key-id'
+      AWS_SECRET_ACCESS_KEY: 'your-secret-access-key'
+      MONITORING_TOKEN: 'anodot-monitoring-token'
+
+      CRON_SCHEDULE: "0 * * * *"
+      DATA_DIR: '/usr/src/app/data'
