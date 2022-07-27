@@ -23,3 +23,8 @@ services:
 
       CRON_SCHEDULE: "0 * * * *"
       DATA_DIR: '/usr/src/app/data'
+    volumes:
+      - agent-data:/usr/src/app/data
+
+volumes:
+  agent-data:
