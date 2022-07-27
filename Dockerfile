@@ -4,10 +4,11 @@ WORKDIR /usr/src/app
 
 COPY . .
 
-RUN mkdir -p /usr/src/app/data/metrics
-RUN mkdir -p /usr/src/app/data/grouped_metrics
+RUN mkdir /usr/src/app/data
+RUN mkdir /usr/src/app/data/metrics
+RUN mkdir /usr/src/app/data/grouped_metrics
 
 RUN pip install -r requirements.txt
 RUN python setup.py install
 
-CMD ["python", "./src/agent/main.py"]
+CMD ["python", "/usr/src/app/src/agent/main.py"]

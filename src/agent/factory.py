@@ -6,6 +6,9 @@ def get_sender():
     if config_provider['data_sender'] == 's3':
         return data_sender.S3DataSender(
             config_provider['s3_bucket'],
+            config_provider['s3_region'],
+            config_provider['aws_access_key_id'],
+            config_provider['aws_secret_access_key'],
         )
     elif config_provider['data_sender'] == 'dummy':
         return data_sender.DummySender()

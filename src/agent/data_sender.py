@@ -3,6 +3,7 @@ import shutil
 import boto3
 
 from abc import abstractmethod, ABC
+from botocore.config import Config
 from botocore.exceptions import ClientError
 
 from agent import constants, monitoring
@@ -16,11 +17,18 @@ class DataSender(ABC):
 
 
 class S3DataSender(DataSender):
-    def __init__(self, bucket):
+    def __init__(self, bucket: str, region_name: str, access_key_id: str, secret_access_key: str):
         self.bucket = bucket
+        self.config = Config(
+            region_name=region_name,
+        )
+        self.access_key_id = access_key_id
+        self.secret_access_key = secret_access_key
 
     def send_file(self, file_name: str) -> bool:
-        s3_client = boto3.client('s3')
+        s3_client = boto3.client(
+            's3', config=self.config, aws_access_key_id=self.access_key_id, aws_secret_access_key=self.secret_access_key
+        )
         try:
             s3_client.upload_file(file_name, self.bucket, os.path.basename(file_name))
             logger.info(f'File `{file_name.split("/")[-1]}` sent to S3 bucket `{self.bucket}`')

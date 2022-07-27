@@ -8,9 +8,8 @@ class OffsetManager:
     def __init__(self, initial_offset: int = None):
         # todo move config provider out?
         self.interval = agent_time.Interval(config_provider['interval'])
-        # - 10 give some margin
-        # todo do I need base offset?
-        self._base_offset = initial_offset or int(time.time()) - 10
+        # - 600 give some margin
+        self._base_offset = initial_offset or int(time.time()) - 600
         self._offset = self._get_offset()
 
     def get_offset(self) -> int:

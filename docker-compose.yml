@@ -6,7 +6,18 @@ services:
     container_name: agent
     environment:
       PROMETHEUS_URL: 'http://victoriametrics:8428'
-      LOG_FILE_PATH: '/var/log/agent.log'
+#      this one is for victoria
+      INITIAL_OFFSET: "1657284343"
+#      this one is for prometheus
+#      INITIAL_OFFSET: "1658275200"
+      DATA_DIR: '/usr/src/app/data'
+      S3_BUCKET: 'prometheus-agent-test'
+      CUSTOMER_NAME: 'dev'
+      CLUSTER_NAME: 'prometheus-stack'
+      RUN_BY_ONE_ITERATION: 'true'
+      DATA_SENDER: 'dummy'
+      MONITORING: 'dummy'
+      MONITORING_TOKEN: 'dummy'
     volumes:
       - ./data:/usr/src/app/data
       - ./logs/:/var/log/
@@ -21,5 +32,5 @@ services:
     command:
       - '--storageDataPath=/storage'
       - '--httpListenAddr=:8428'
-      - '--retentionPeriod=600'
+      - '--retentionPeriod=1600'
     restart: always

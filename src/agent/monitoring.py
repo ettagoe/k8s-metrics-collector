@@ -49,12 +49,17 @@ def send_stage_duration(file_sending_time_seconds: float):
     _get_monitoring_client().push('send_stage_duration', file_sending_time_seconds)
 
 
-def s3_error():
-    _get_monitoring_client().push('s3_error', 1, COUNTER_TARGET_TYPE)
+def send_0_errors():
+    error(0)
+    s3_error(0)
 
 
-def error():
-    _get_monitoring_client().push('error', 1, COUNTER_TARGET_TYPE)
+def s3_error(val: int = 1):
+    _get_monitoring_client().push('s3_error', val, COUNTER_TARGET_TYPE)
+
+
+def error(val: int = 1):
+    _get_monitoring_client().push('error', val, COUNTER_TARGET_TYPE)
 
 
 class MonitoringAsyncAnodotApiClient:
