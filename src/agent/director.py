@@ -96,7 +96,7 @@ class Director:
 
         grouped_metrics = self.transformer.group_metrics(metrics)
         for group, metrics in grouped_metrics.items():
-            file_name = f'{group}_{self.offset_manager.get_offset()}_{self.interval.total_seconds()}.json'
+            file_name = f'{group}_{self.offset_manager.get_offset()}_{self.interval.total_seconds()}_{config_provider["customer_name"]}.json'
             file_path = os.path.join(self.grouped_metrics_dir, file_name)
             with open(file_path, 'w') as f:
                 json.dump(metrics, f)

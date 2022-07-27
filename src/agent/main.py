@@ -6,6 +6,7 @@ from agent.logger import logger
 
 
 # next steps
+# todo agree the final file name format
 # write a list of all metrics and queries
 # decide about monitoring
 # I can put queries into values.yaml and configure separately for each customer, it will convert into json
@@ -14,7 +15,6 @@ from agent.logger import logger
 # what will be cheaper? lambda or image?
 # lambda can take from s3
 # create an iam user and use its keys
-# unique file name for each customer?
 # only put wrights
 # todo, what exactly should be in node_network_total_bytes query? Is it total.. or total for a period?
 def main():
