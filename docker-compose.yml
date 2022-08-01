@@ -5,11 +5,12 @@ services:
     build: .
     container_name: agent
     environment:
-      PROMETHEUS_URL: 'http://victoriametrics:8428'
+#      PROMETHEUS_URL: 'http://victoriametrics:8428'
+      PROMETHEUS_URL: 'http://localhost:59186'
 #      this one is for victoria
-      INITIAL_OFFSET: "1657284343"
+#      INITIAL_OFFSET: "1657284343"
 #      this one is for prometheus
-#      INITIAL_OFFSET: "1658275200"
+      INITIAL_OFFSET: "1658275200"
 #      S3_REGION: 'us-east-1'
 #      S3_BUCKET: 'prometheus-agent-test'
       CUSTOMER_NAME: 'dev'

@@ -19,7 +19,7 @@ class _ConfigProvider:
             'initial_offset': int(os.environ.get('INITIAL_OFFSET')),
             'metrics_dir': constants.METRICS_DIR,
             'grouped_metrics_dir': constants.GROUPED_METRICS_DIR,
-            'max_concurrent_requests': os.environ.get('MAX_CONCURRENT_REQUESTS', 10),
+            'max_concurrent_requests': os.environ.get('MAX_CONCURRENT_REQUESTS', 5),
             'customer_name': os.environ['CUSTOMER_NAME'],
             'cluster_name': os.environ['CLUSTER_NAME'],
             'run_by_one_iteration': os.environ.get('RUN_BY_ONE_ITERATION',  'false') == 'true',

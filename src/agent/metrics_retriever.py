@@ -27,7 +27,7 @@ class MetricsRetriever(ABC):
 # todo would be nice to have a separate async client, and retriever will be generic, but I don't know how to do that now
 class PrometheusAsyncMetricsRetriever(MetricsRetriever):
     def _get_file_path(self, metric_name: str):
-        return os.path.join(self.metrics_dir, metric_name)
+        return os.path.join(self.metrics_dir, f'{metric_name}.json')
 
     def fetch_all(self, metrics: dict, timestamp_till: int, interval: Interval):
         sema = asyncio.Semaphore(self.max_concurrent_requests)
@@ -65,7 +65,7 @@ class PrometheusAsyncMetricsRetriever(MetricsRetriever):
 
     @staticmethod
     def _build_query(query: str, interval: Interval) -> str:
-        return query.replace('%INTERVAL%', str(interval))
+        return query.replace('%I%', str(interval))
 
 
 class RequestException(Exception):

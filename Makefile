@@ -10,8 +10,10 @@ run-victoria: _up-victoria sleep _setup-victoria
 _up-victoria:
 	docker-compose up -d victoriametrics
 
-run-all: run-victoria
+run-agent:
 	docker-compose up -d agent
+
+run-all: run-victoria run-agent
 
 stop:
 	rm -rf data/grouped_metrics/*

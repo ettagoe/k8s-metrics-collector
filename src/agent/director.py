@@ -92,7 +92,8 @@ class Director:
         metrics = {}
         for file in os.listdir(config_provider['metrics_dir']):
             with open(os.path.join(config_provider['metrics_dir'], file), 'r') as f:
-                metrics[file] = json.load(f)
+                # -5 - remove .json
+                metrics[file[:-5]] = json.load(f)
 
         grouped_metrics = self.transformer.group_metrics(metrics)
         for group, metrics in grouped_metrics.items():

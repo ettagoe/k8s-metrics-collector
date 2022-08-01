@@ -4,18 +4,21 @@ from agent import factory, monitoring
 from agent.config_provider import config_provider
 from agent.logger import logger
 
+# query questions
+# node_number_of_running_pods - what if during some time pods didn't run?
+# if I query by time will I see 0? maybe I need to add time to query
+
 
 # next steps
-# todo agree the final file name format
+# todo extract all metrics to have an example file before the call with.. someone
 # write a list of all metrics and queries
 # decide about monitoring
 # I can put queries into values.yaml and configure separately for each customer, it will convert into json
 # todo we can encrypt files if needed
-# todo will I be able to clean everything to rerun the app if something goes wrong on the customer side?
 # what will be cheaper? lambda or image?
 # lambda can take from s3
 # create an iam user and use its keys
-# only put wrights
+# only put rights
 # todo, what exactly should be in node_network_total_bytes query? Is it total.. or total for a period?
 def main():
     try:
