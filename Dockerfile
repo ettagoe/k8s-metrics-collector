@@ -13,6 +13,11 @@ RUN chmod 755 entry.sh
 
 RUN mkdir /usr/src/app/data
 RUN mkdir /usr/src/app/data/metrics
+RUN mkdir /usr/src/app/data/metrics/cluster
+RUN mkdir /usr/src/app/data/metrics/node
+RUN mkdir /usr/src/app/data/metrics/pod
+RUN mkdir /usr/src/app/data/metrics/container
+# todo remove grouped dir?
 RUN mkdir /usr/src/app/data/grouped_metrics
 
 COPY ./data/metric_queries.json /usr/src/app/data/

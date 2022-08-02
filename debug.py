@@ -1,21 +1,20 @@
-import asyncio
 import json
-import time
+
+a = [{'a': 1, 'b': 2}, {'a': 3, 'b': 4}]
+b = [{'a': 2, 'b': 3}, {'a': 4, 'b': 5}]
 
 
-async def foo(i):
-    start = time.time()
-    await asyncio.sleep(i + 1)
-    print(f'{i} took {time.time() - start}')
+with open('a.json', 'w') as f:
+    f.write('{')
 
+    s = json.dumps(a)
+    f.write(f'"a": {s},')
 
-async def main():
-    return await asyncio.gather(*[foo(i) for i in range(3)])
+    s = json.dumps(b)
+    f.write(f'"b": {s}')
 
+    f.write('}')
 
-start = time.time()
-asyncio.run(main())
-print(f'Took {time.time() - start}')
 
 # loop = asyncio.get_event_loop()
 # tasks = [

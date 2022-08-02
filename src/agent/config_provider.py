@@ -13,6 +13,7 @@ class _ConfigProvider:
             'log_file_path': os.environ.get('LOG_FILE_PATH', '/var/log/agent.log'),
             'metric_queries': self._get_metric_queries(metrics),
             'metric_groups': self._get_metric_groups(metrics),
+            'metrics': metrics,
             'offset_file_path': constants.OFFSET_FILE_PATH,
             'state_file_path': constants.STATE_FILE_PATH,
             'interval': os.environ.get('INTERVAL', '1h'),
@@ -22,7 +23,7 @@ class _ConfigProvider:
             'max_concurrent_requests': os.environ.get('MAX_CONCURRENT_REQUESTS', 5),
             'customer_name': os.environ['CUSTOMER_NAME'],
             'cluster_name': os.environ['CLUSTER_NAME'],
-            'run_by_one_iteration': os.environ.get('RUN_BY_ONE_ITERATION',  'false') == 'true',
+            'run_by_one_iteration': os.environ.get('RUN_BY_ONE_ITERATION', 'false') == 'true',
         }
         self._load_data_sender_config()
         self._load_monitoring_config()

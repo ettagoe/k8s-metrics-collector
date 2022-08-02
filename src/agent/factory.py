@@ -27,7 +27,11 @@ def get_monitoring_client():
 
 
 def get_metrics_retriever():
-    return metrics_retriever.PrometheusAsyncMetricsRetriever(config_provider.get('prometheus_url'))
+    return metrics_retriever.PrometheusAsyncMetricsRetriever(
+        config_provider.get('prometheus_url'),
+        int(config_provider['max_concurrent_requests']),
+        int(config_provider.get('request_timeout', 300))
+    )
 
 
 def get_transformer():
@@ -45,5 +49,4 @@ def get_director():
         get_sender(),
         get_offset_manager(),
         time.Interval(config_provider['interval']),
-        config_provider['metric_queries'],
     )

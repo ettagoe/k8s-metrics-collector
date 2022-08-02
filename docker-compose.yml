@@ -6,11 +6,12 @@ services:
     container_name: agent
     environment:
 #      PROMETHEUS_URL: 'http://victoriametrics:8428'
-      PROMETHEUS_URL: 'http://localhost:59186'
+      PROMETHEUS_URL: 'http://host.docker.internal:61593'
+      INTERVAL: '15m'
 #      this one is for victoria
 #      INITIAL_OFFSET: "1657284343"
 #      this one is for prometheus
-      INITIAL_OFFSET: "1658275200"
+      INITIAL_OFFSET: "1659243002"
 #      S3_REGION: 'us-east-1'
 #      S3_BUCKET: 'prometheus-agent-test'
       CUSTOMER_NAME: 'dev'
@@ -20,15 +21,13 @@ services:
       MONITORING: 'dummy'
       MONITORING_TOKEN: 'dummy'
 
-      CRON_SCHEDULE: "* * * * *"
+      CRON_SCHEDULE: "*/15 * * * *"
       DATA_DIR: '/usr/src/app/data'
       RUN_BY_ONE_ITERATION: 'true'
     volumes:
       - ./data:/usr/src/app/data
       - ./logs/:/var/log/
       - ./src/:/usr/src/app/src/
-    depends_on:
-      - victoriametrics
 
   victoriametrics:
     container_name: victoriametrics

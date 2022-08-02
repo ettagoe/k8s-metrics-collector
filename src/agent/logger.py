@@ -31,5 +31,5 @@ def get_logger(name, level=None, stdout=True) -> logging.Logger:
 
 
 logger = get_logger(
-    __name__, config_provider.get('log_level', logging.INFO), stdout=config_provider.get('log_to_stdout', False)
+    __name__, config_provider.get('log_level', logging.INFO), stdout=config_provider.get('log_to_stdout', True)
 )

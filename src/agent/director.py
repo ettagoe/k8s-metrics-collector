@@ -21,7 +21,6 @@ class Director:
             data_sender: DataSender,
             offset_manager: OffsetManager,
             interval: Interval,
-            metric_queries: dict,
     ):
         self.state = self._get_state()
         self.interval = interval
@@ -30,7 +29,6 @@ class Director:
         self.transformer = transformer
         self.offset_manager = offset_manager
         self.grouped_metrics_dir = config_provider['grouped_metrics_dir']
-        self.metric_queries = metric_queries
 
     @property
     def stage(self) -> str:
@@ -46,15 +44,17 @@ class Director:
 
             monitoring.retrieve_stage_duration(time.time() - start)
 
+        # if self.stage == state.Stages.TRANSFORM:
+        #     start = time.time()
+        #     logger.info('Running stage: transform')
+        #
+        #     self._transform()
+        #
+        #     monitoring.transform_stage_duration(time.time() - start)
+
+        # todo temporary
+        # if self.stage == state.Stages.SEND:
         if self.stage == state.Stages.TRANSFORM:
-            start = time.time()
-            logger.info('Running stage: transform')
-
-            self._transform()
-
-            monitoring.transform_stage_duration(time.time() - start)
-
-        if self.stage == state.Stages.SEND:
             start = time.time()
             logger.info('Running stage: send')
 
@@ -81,10 +81,17 @@ class Director:
         return state_
 
     def _retrieve(self):
-        self.metrics_retriever.fetch_all(
-            self.state.items,
+        # self.metrics_retriever.fetch_all(
+        #     self.state.items,
+        #     self.offset_manager.get_offset(),
+        #     self.interval,
+        #     config_provider['metrics_dir']
+        # )
+        self.metrics_retriever.fetch_groups(
+            self.state.grouped_items,
             self.offset_manager.get_offset(),
-            self.interval
+            self.interval,
+            config_provider['metrics_dir']
         )
         self.state.increment_stage()
 
@@ -113,11 +120,26 @@ class Director:
             logger.info(f'Deleted raw metrics file `{file}`')
 
     def _send(self):
-        for file in os.listdir(self.grouped_metrics_dir):
-            if self.data_sender.send_file(os.path.join(self.grouped_metrics_dir, file)):
-                self._delete_sent_file(file)
+        groups = ['cluster', 'node', 'pod', 'container']
+        for group in groups:
+            curr_dir = os.path.join(config_provider['metrics_dir'], group)
+            self.data_sender.send_dir_to_file(
+                curr_dir,
+                f'{group}_{self.offset_manager.get_offset()}_{self.interval.total_seconds()}.json',
+            )
+            self._clear_directory(curr_dir)
+
+        # for file in os.listdir(self.grouped_metrics_dir):
+        #     if self.data_sender.send_file(os.path.join(self.grouped_metrics_dir, file)):
+        #         self._delete_sent_file(file)
         self.state.increment_stage()
 
     def _delete_sent_file(self, file_name: str):
         os.remove(os.path.join(self.grouped_metrics_dir, file_name))
         logger.info(f'Deleted grouped metrics file `{file_name}`')
+
+    @staticmethod
+    def _clear_directory(directory: str):
+        for file in os.listdir(directory):
+            os.remove(os.path.join(directory, file))
+            logger.info(f'Deleted raw metrics file `{file}`')

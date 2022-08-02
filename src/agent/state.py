@@ -15,6 +15,7 @@ class State:
     def __init__(self, stage: str):
         self.stage = stage
         self.items = self._get_items()
+        self.grouped_items = self._get_grouped_items()
         self._load_items_state()
 
     def to_dict(self):
@@ -53,10 +54,16 @@ class State:
         elif self.stage in [Stages.TRANSFORM, Stages.SEND]:
             return config_provider['metric_groups']
 
+    @staticmethod
+    def _get_grouped_items() -> dict:
+        return config_provider['metrics']
+
     def _load_items_state(self):
         if self.stage == Stages.RETRIEVE:
             for file in os.listdir(self._get_current_stage_dir()):
-                self.items.pop(file)
+                if file.endswith('.json'):
+                    # todo -5 so so
+                    self.items.pop(file[:-5])
         if self.stage == Stages.TRANSFORM:
             for file in os.listdir(self._get_current_stage_dir()):
                 self.items.pop(file.split('_')[0])
