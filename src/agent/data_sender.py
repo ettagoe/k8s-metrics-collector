@@ -18,7 +18,7 @@ class DataSender(ABC):
         pass
 
     @abstractmethod
-    def send_dir_to_file(self, dir_path: str, target_file: str) -> bool:
+    def stream_dir_to_file(self, dir_path: str, target_file: str) -> bool:
         pass
 
 
@@ -42,8 +42,7 @@ class S3DataSender(DataSender):
             return False
         return True
 
-    # todo bad name, bad class
-    def send_dir_to_file(self, dir_path: str, target_file: str) -> bool:
+    def stream_dir_to_file(self, dir_path: str, target_file: str) -> bool:
         try:
             with smart_open.open(
                     self._get_bucket_url(target_file),

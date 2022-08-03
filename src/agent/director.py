@@ -1,4 +1,3 @@
-import json
 import os
 import time
 
@@ -7,6 +6,7 @@ from agent.config_provider import config_provider
 from agent.data_sender import DataSender
 from agent.logger import logger
 from agent.metrics_retriever import MetricsRetriever
+from agent.monitoring import monitor_exec_time
 from agent.offset_manager import OffsetManager
 from agent.state import State
 from agent.time import Interval
@@ -28,40 +28,21 @@ class Director:
         self.data_sender = data_sender
         self.transformer = transformer
         self.offset_manager = offset_manager
-        self.grouped_metrics_dir = config_provider['grouped_metrics_dir']
 
     @property
     def stage(self) -> str:
         return self.state.stage
 
     def run(self):
-        # todo what if there's no data in a file? don't send it? test
         if self.stage == state.Stages.RETRIEVE:
-            start = time.time()
-            logger.info('Running stage: retrieve')
-
             self._retrieve()
 
-            monitoring.retrieve_stage_duration(time.time() - start)
-
-        # if self.stage == state.Stages.TRANSFORM:
-        #     start = time.time()
-        #     logger.info('Running stage: transform')
-        #
-        #     self._transform()
-        #
-        #     monitoring.transform_stage_duration(time.time() - start)
-
-        # todo temporary
-        # if self.stage == state.Stages.SEND:
-        if self.stage == state.Stages.TRANSFORM:
-            start = time.time()
-            logger.info('Running stage: send')
-
+        if self.stage == state.Stages.SEND:
             self._send()
 
-            monitoring.send_stage_duration(time.time() - start)
+        self._increment_offset()
 
+    def _increment_offset(self):
         self.offset_manager.increment_offset()
         repository.save_offset(self.offset_manager.get_offset())
         logger.info(f'Incremented offset to: {self.offset_manager.get_offset()}')
@@ -80,13 +61,10 @@ class Director:
         repository.save_state(state_)
         return state_
 
+    @monitor_exec_time(monitoring.RETRIEVE_STAGE_DURATION)
     def _retrieve(self):
-        # self.metrics_retriever.fetch_all(
-        #     self.state.items,
-        #     self.offset_manager.get_offset(),
-        #     self.interval,
-        #     config_provider['metrics_dir']
-        # )
+        logger.info('Running stage: retrieve')
+
         self.metrics_retriever.fetch_groups(
             self.state.grouped_items,
             self.offset_manager.get_offset(),
@@ -95,48 +73,20 @@ class Director:
         )
         self.state.increment_stage()
 
-    def _transform(self):
-        metrics = {}
-        for file in os.listdir(config_provider['metrics_dir']):
-            with open(os.path.join(config_provider['metrics_dir'], file), 'r') as f:
-                # -5 - remove .json
-                metrics[file[:-5]] = json.load(f)
-
-        grouped_metrics = self.transformer.group_metrics(metrics)
-        for group, metrics in grouped_metrics.items():
-            file_name = f'{group}_{self.offset_manager.get_offset()}_{self.interval.total_seconds()}_{config_provider["customer_name"]}.json'
-            file_path = os.path.join(self.grouped_metrics_dir, file_name)
-            with open(file_path, 'w') as f:
-                json.dump(metrics, f)
-                logger.info(f'Saved grouped metrics file `{file_name}`')
-
-        self._clear_metrics_dir()
-        self.state.increment_stage()
-
-    @staticmethod
-    def _clear_metrics_dir():
-        for file in os.listdir(config_provider['metrics_dir']):
-            os.remove(os.path.join(config_provider['metrics_dir'], file))
-            logger.info(f'Deleted raw metrics file `{file}`')
-
+    @monitor_exec_time(monitoring.SEND_STAGE_DURATION)
     def _send(self):
+        logger.info('Running stage: send')
+
         groups = ['cluster', 'node', 'pod', 'container']
         for group in groups:
             curr_dir = os.path.join(config_provider['metrics_dir'], group)
-            self.data_sender.send_dir_to_file(
+            self.data_sender.stream_dir_to_file(
                 curr_dir,
-                f'{group}_{self.offset_manager.get_offset()}_{self.interval.total_seconds()}.json',
+                f'{group}_{self.offset_manager.get_offset()}_{self.interval.total_seconds()}.json.gz',
             )
             self._clear_directory(curr_dir)
 
-        # for file in os.listdir(self.grouped_metrics_dir):
-        #     if self.data_sender.send_file(os.path.join(self.grouped_metrics_dir, file)):
-        #         self._delete_sent_file(file)
         self.state.increment_stage()
-
-    def _delete_sent_file(self, file_name: str):
-        os.remove(os.path.join(self.grouped_metrics_dir, file_name))
-        logger.info(f'Deleted grouped metrics file `{file_name}`')
 
     @staticmethod
     def _clear_directory(directory: str):

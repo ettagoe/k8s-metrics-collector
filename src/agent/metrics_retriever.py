@@ -26,7 +26,7 @@ class MetricsRetriever(ABC):
         pass
 
 
-# todo would be nice to have a separate async client, and retriever will be generic, but I don't know how to do that now
+# todo provide response handler. it will write to files
 class PrometheusAsyncMetricsRetriever(MetricsRetriever):
     @staticmethod
     def _get_file_path(output_dir: str, metric_name: str):
@@ -57,9 +57,9 @@ class PrometheusAsyncMetricsRetriever(MetricsRetriever):
                 res = await res.json()
                 if res['status'] != 'success':
                     raise RequestException(f'Prometheus query failed: {res}')
-                data = res['data']['result']
-                with open(self._get_file_path(output_dir, metric), 'w') as f:
-                    f.write(json.dumps(data))
+                if data := res['data']['result']:
+                    with open(self._get_file_path(output_dir, metric), 'w') as f:
+                        f.write(json.dumps(data))
 
                 logger.info(f'{metric} took {time.time() - start}')
 
@@ -72,7 +72,6 @@ class PrometheusAsyncMetricsRetriever(MetricsRetriever):
 
     @staticmethod
     def _build_query(query: str, interval: Interval) -> str:
-        # todo it's not working correctly, we need to take data for the interval, not the whole time range
         return query.replace('%I%', str(interval))
 
 

@@ -7,7 +7,6 @@ from agent.logger import logger
 
 class Stages:
     RETRIEVE = 'retrieve'
-    TRANSFORM = 'transform'
     SEND = 'send'
 
 
@@ -33,8 +32,6 @@ class State:
 
     def increment_stage(self):
         if self.stage == Stages.RETRIEVE:
-            self.stage = Stages.TRANSFORM
-        elif self.stage == Stages.TRANSFORM:
             self.stage = Stages.SEND
         elif self.stage == Stages.SEND:
             self.stage = Stages.RETRIEVE
@@ -45,13 +42,13 @@ class State:
     def _get_current_stage_dir(self):
         if self.stage == Stages.RETRIEVE:
             return config_provider['metrics_dir']
-        elif self.stage in [Stages.TRANSFORM, Stages.SEND]:
+        elif self.stage in [Stages.SEND]:
             return config_provider['grouped_metrics_dir']
 
     def _get_items(self) -> dict:
         if self.stage == Stages.RETRIEVE:
             return config_provider['metric_queries']
-        elif self.stage in [Stages.TRANSFORM, Stages.SEND]:
+        elif self.stage in [Stages.SEND]:
             return config_provider['metric_groups']
 
     @staticmethod
@@ -64,6 +61,3 @@ class State:
                 if file.endswith('.json'):
                     # todo -5 so so
                     self.items.pop(file[:-5])
-        if self.stage == Stages.TRANSFORM:
-            for file in os.listdir(self._get_current_stage_dir()):
-                self.items.pop(file.split('_')[0])

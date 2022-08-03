@@ -4,20 +4,35 @@ import aiohttp
 
 from urllib.parse import urljoin
 
-from agent import factory, tools
+from agent import factory, tools, constants
 from agent.config_provider import config_provider
 from agent.logger import logger
 
 INSTANT_MONITORING = 'instant'
 ACCUMULATIVE_MONITORING = 'accumulative'
 
+SEND_STAGE_DURATION = 'send_stage_duration'
+RETRIEVE_STAGE_DURATION = 'retrieve_stage_duration'
+
 COUNTER_TARGET_TYPE = 'counter'
 GAUGE_TARGET_TYPE = 'gauge'
 
-ANODOT_MONITORING_URL = 'https://app-monitoring.anodot.com/'
 PROTOCOL_20 = 'anodot20'
 
 _monitoring_client = None
+
+
+def monitor_exec_time(metric_name: str):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            start = time.time()
+            result = func(*args, **kwargs)
+            send_duration(metric_name, time.time() - start)
+            return result
+
+        return wrapper
+
+    return decorator
 
 
 def iteration_started():
@@ -33,20 +48,12 @@ def query_execution_duration(query_id: int, execution_time: float):
     _get_monitoring_client().push('query_execution_duration', execution_time, query=query_id)
 
 
-def retrieve_stage_duration(execution_time: float):
-    _get_monitoring_client().push('retrieve_stage_duration', execution_time)
-
-
-def transform_stage_duration(transformation_time_seconds: float):
-    _get_monitoring_client().push('transformation_duration', transformation_time_seconds)
-
-
 def file_sending_duration(file_sending_time_seconds: float, file_name: str):
     _get_monitoring_client().push('file_sending_duration', file_sending_time_seconds, file_name=file_name)
 
 
-def send_stage_duration(file_sending_time_seconds: float):
-    _get_monitoring_client().push('send_stage_duration', file_sending_time_seconds)
+def send_duration(metric_name: str, duration: float):
+    _get_monitoring_client().push(metric_name, duration)
 
 
 def send_0_errors():
@@ -66,7 +73,7 @@ class MonitoringAsyncAnodotApiClient:
     def __init__(self, access_token: str):
         self.access_token = access_token
         self.params = {'token': access_token, 'protocol': PROTOCOL_20}
-        self.url = ANODOT_MONITORING_URL
+        self.url = constants.ANODOT_MONITORING_URL
 
     # todo test if sending failed but app didn't crash
     def send(self, metrics: list[dict]):
@@ -125,6 +132,7 @@ class InstantMonitoringClient(MonitoringAsyncAnodotApiClient):
 
 def _get_monitoring_client():
     global _monitoring_client
+
     if _monitoring_client is None:
         _monitoring_client = factory.get_monitoring_client()
     return _monitoring_client

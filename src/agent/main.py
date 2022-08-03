@@ -20,16 +20,14 @@ def retry(func):
 
 # query questions
 # node_number_of_running_pods - what if during some time pods didn't run?
-# if I query by time will I see 0? maybe I need to add time to query
 
 
 # next steps
-# write files directly to s3, smart_open, compress files when sending
 # create folders for customers and for clusters inside customer folders
 # customer folder should have a prefix of account-id (aws root or payer account id) and
 # linked-account-id (acc that's connected through organization to root or payer but can be the same)
 # check what metrics can be calculated from existing metrics and remove their queries
-# think about splitting files by size, don't keep too much data from metrics, you might run out of ram or disk
+# think about splitting files by size, don't keep too much data from metrics, you might run out of disk
 # write logs to cloudwatch, to our, Vova seems to know about it
 # check if the app is already running so that we don't start it twice
 # finish the list of all metrics and queries
@@ -51,9 +49,6 @@ def main():
         logger.exception(e)
         monitoring.error()
         raise e
-
-    # Wait for all other tasks to finish other than the current task i.e. main().
-    # await asyncio.gather(*asyncio.all_tasks() - {asyncio.current_task()})
 
 
 def _run():
