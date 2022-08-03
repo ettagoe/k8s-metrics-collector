@@ -11,8 +11,6 @@ class _ConfigProvider:
         metrics = self._load_metric_queries()
         self.config = {
             'log_file_path': os.environ.get('LOG_FILE_PATH', '/var/log/agent.log'),
-            'metric_queries': self._get_metric_queries(metrics),
-            'metric_groups': self._get_metric_groups(metrics),
             'metrics': metrics,
             'offset_file_path': constants.OFFSET_FILE_PATH,
             'state_file_path': constants.STATE_FILE_PATH,
@@ -39,17 +37,6 @@ class _ConfigProvider:
         with open(constants.METRIC_QUERIES_FILE_PATH) as f:
             return json.load(f)
 
-    @staticmethod
-    def _get_metric_queries(metrics: dict) -> dict:
-        queries = {}
-        for metric_queries in metrics.values():
-            queries |= metric_queries
-        return queries
-
-    @staticmethod
-    def _get_metric_groups(metrics: dict) -> dict:
-        return {group_name: list(metric_queries) for group_name, metric_queries in metrics.items()}
-
     def _load_data_sender_config(self):
         self.config['data_sender'] = os.environ.get('DATA_SENDER', 's3')
         if self.config['data_sender'] == 's3':
@@ -57,6 +44,8 @@ class _ConfigProvider:
             self.config['aws_secret_access_key'] = os.environ['AWS_SECRET_ACCESS_KEY']
             self.config['s3_bucket'] = os.environ['S3_BUCKET']
             self.config['s3_region'] = os.environ['S3_REGION']
+            self.config['aws_account_id'] = os.environ['AWS_ACCOUNT_ID']
+            self.config['aws_linked_account_id'] = os.environ['AWS_LINKED_ACCOUNT_ID']
 
     def _load_monitoring_config(self):
         self.config['monitoring'] = os.environ.get('MONITORING', 'anodot')

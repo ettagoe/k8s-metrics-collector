@@ -6,10 +6,10 @@ import smart_open
 from abc import abstractmethod, ABC
 from botocore.config import Config
 from botocore.exceptions import ClientError
+from pathlib import Path
 
 from agent import constants, monitoring
 from agent.logger import logger
-from agent import transformer
 
 
 class DataSender(ABC):
@@ -45,14 +45,14 @@ class S3DataSender(DataSender):
     def stream_dir_to_file(self, dir_path: str, target_file: str) -> bool:
         try:
             with smart_open.open(
-                    self._get_bucket_url(target_file),
+                    self._get_bucket_file_url(target_file),
                     'w',
                     transport_params={'client': self.s3_client}
             ) as fout:
                 fout.write('{')
 
                 first = True
-                for s in transformer.DataGenerator.generate_data(dir_path):
+                for s in DataGenerator.generate_data(dir_path):
                     if first:
                         first = False
                     else:
@@ -71,7 +71,7 @@ class S3DataSender(DataSender):
 
         return True
 
-    def _get_bucket_url(self, target_file: str) -> str:
+    def _get_bucket_file_url(self, target_file: str) -> str:
         return f's3://{self.bucket}/{target_file}'
 
 
@@ -82,3 +82,12 @@ class DummySender(DataSender):
             os.makedirs(output_dir)
         shutil.copy(file_name, output_dir)
         return True
+
+
+class DataGenerator:
+    @staticmethod
+    def generate_data(metrics_dir: str) -> str:
+        for file in os.listdir(metrics_dir):
+            if file.endswith('.json'):
+                with open(os.path.join(metrics_dir, file), 'r') as f:
+                    yield f'"{Path(file).stem}": {f.read()}'

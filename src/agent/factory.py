@@ -1,4 +1,4 @@
-from agent import data_sender, monitoring, metrics_retriever, transformer, offset_manager, director, time
+from agent import data_sender, monitoring, metrics_retriever, offset_manager, director, time
 from agent.config_provider import config_provider
 
 
@@ -34,10 +34,6 @@ def get_metrics_retriever():
     )
 
 
-def get_transformer():
-    return transformer.Transformer(config_provider['metric_groups'])
-
-
 def get_offset_manager():
     return offset_manager.OffsetManager(config_provider['initial_offset'])
 
@@ -45,7 +41,6 @@ def get_offset_manager():
 def get_director():
     return director.Director(
         get_metrics_retriever(),
-        get_transformer(),
         get_sender(),
         get_offset_manager(),
         time.Interval(config_provider['interval']),

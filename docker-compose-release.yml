@@ -20,6 +20,8 @@ services:
       AWS_ACCESS_KEY_ID: 'your-access-key-id'
       AWS_SECRET_ACCESS_KEY: 'your-secret-access-key'
       MONITORING_TOKEN: 'anodot-monitoring-token'
+      AWS_ACCOUNT_ID: 'your-account-id'
+      AWS_LINKED_ACCOUNT_ID: 'your-linked-account-id'
 
       CRON_SCHEDULE: "0 * * * *"
       DATA_DIR: '/usr/src/app/data'

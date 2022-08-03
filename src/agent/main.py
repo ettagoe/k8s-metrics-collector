@@ -23,9 +23,6 @@ def retry(func):
 
 
 # next steps
-# create folders for customers and for clusters inside customer folders
-# customer folder should have a prefix of account-id (aws root or payer account id) and
-# linked-account-id (acc that's connected through organization to root or payer but can be the same)
 # check what metrics can be calculated from existing metrics and remove their queries
 # think about splitting files by size, don't keep too much data from metrics, you might run out of disk
 # write logs to cloudwatch, to our, Vova seems to know about it

@@ -10,14 +10,12 @@ from agent.monitoring import monitor_exec_time
 from agent.offset_manager import OffsetManager
 from agent.state import State
 from agent.time import Interval
-from agent.transformer import Transformer
 
 
 class Director:
     def __init__(
             self,
             metrics_retriever: MetricsRetriever,
-            transformer: Transformer,
             data_sender: DataSender,
             offset_manager: OffsetManager,
             interval: Interval,
@@ -26,7 +24,6 @@ class Director:
         self.interval = interval
         self.metrics_retriever = metrics_retriever
         self.data_sender = data_sender
-        self.transformer = transformer
         self.offset_manager = offset_manager
 
     @property
@@ -79,13 +76,20 @@ class Director:
 
         for group in state.METRIC_GROUPS:
             curr_dir = os.path.join(config_provider['metrics_dir'], group)
-            self.data_sender.stream_dir_to_file(
-                curr_dir,
-                f'{group}_{self.offset_manager.get_offset()}_{self.interval.total_seconds()}.json.gz',
-            )
+            self.data_sender.stream_dir_to_file(curr_dir, self._get_target_s3_file(group))
             self._clear_directory(curr_dir)
 
         self.state.increment_stage()
+
+    def _get_target_s3_file(self, group: str) -> str:
+        return f'{self._get_s3_dir()}/{self._get_s3_file_name(group)}'
+
+    @staticmethod
+    def _get_s3_dir() -> str:
+        return f'{config_provider["aws_account_id"]}__{config_provider["aws_linked_account_id"]}/{config_provider["cluster_name"]}'
+
+    def _get_s3_file_name(self, group: str) -> str:
+        return f'{group}_{self.offset_manager.get_offset()}_{self.interval.total_seconds()}.json.gz'
 
     @staticmethod
     def _clear_directory(directory: str):
