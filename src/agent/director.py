@@ -66,7 +66,7 @@ class Director:
         logger.info('Running stage: retrieve')
 
         self.metrics_retriever.fetch_groups(
-            self.state.grouped_items,
+            self.state.grouped_metrics,
             self.offset_manager.get_offset(),
             self.interval,
             config_provider['metrics_dir']
@@ -77,8 +77,7 @@ class Director:
     def _send(self):
         logger.info('Running stage: send')
 
-        groups = ['cluster', 'node', 'pod', 'container']
-        for group in groups:
+        for group in state.METRIC_GROUPS:
             curr_dir = os.path.join(config_provider['metrics_dir'], group)
             self.data_sender.stream_dir_to_file(
                 curr_dir,
