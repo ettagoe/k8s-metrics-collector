@@ -21,6 +21,7 @@ class _ConfigProvider:
             'customer_name': os.environ['CUSTOMER_NAME'],
             'cluster_name': os.environ['CLUSTER_NAME'],
             'run_by_one_iteration': os.environ.get('RUN_BY_ONE_ITERATION', 'false') == 'true',
+            'max_app_lock_lifetime': os.environ.get('MAX_LOCK_LIFETIME', '2h'),
         }
         self._load_data_sender_config()
         self._load_monitoring_config()

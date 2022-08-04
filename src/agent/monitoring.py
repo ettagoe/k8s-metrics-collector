@@ -13,6 +13,7 @@ ACCUMULATIVE_MONITORING = 'accumulative'
 
 SEND_STAGE_DURATION = 'send_stage_duration'
 RETRIEVE_STAGE_DURATION = 'retrieve_stage_duration'
+APP_EXECUTION_DURATION = 'app_execution_duration'
 
 COUNTER_TARGET_TYPE = 'counter'
 GAUGE_TARGET_TYPE = 'gauge'

@@ -9,6 +9,7 @@ from botocore.exceptions import ClientError
 from pathlib import Path
 
 from agent import constants, monitoring
+from agent.config_provider import config_provider
 from agent.logger import logger
 
 
@@ -72,7 +73,14 @@ class S3DataSender(DataSender):
         return True
 
     def _get_bucket_file_url(self, target_file: str) -> str:
-        return f's3://{self.bucket}/{target_file}'
+        return f's3://{self.bucket}/{self._get_target_file_path(target_file)}'
+
+    def _get_target_file_path(self, filename: str) -> str:
+        return f'{self._get_dir()}/{filename}'
+
+    @staticmethod
+    def _get_dir() -> str:
+        return f'{config_provider["aws_account_id"]}__{config_provider["aws_linked_account_id"]}/{config_provider["cluster_name"]}'
 
 
 class DummySender(DataSender):
@@ -82,6 +90,21 @@ class DummySender(DataSender):
             os.makedirs(output_dir)
         shutil.copy(file_name, output_dir)
         return True
+
+    def stream_dir_to_file(self, dir_path: str, target_file: str):
+        output_dir = os.path.join(constants.DATA_DIR, 'output')
+        with open(os.path.join(output_dir, target_file), 'w') as f:
+            f.write('{')
+
+            first = True
+            for s in DataGenerator.generate_data(dir_path):
+                if first:
+                    first = False
+                else:
+                    f.write(',')
+                f.write(s)
+
+            f.write('}')
 
 
 class DataGenerator:

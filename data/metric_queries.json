@@ -1,6 +1,5 @@
 {
   "node": {
-    "node_number_of_running_pods": "sum(kube_pod_info) by (node)",
     "node_number_of_running_containers": "sum(sum(kube_pod_container_info) by (pod) + on (pod) group_left (node) (0 * kube_pod_info)) by (node)",
     "node_cpu_usage_total": "sum by (instance) (1 - sum without (mode) (rate(node_cpu_seconds_total{mode=~'idle|iowait|steal'}[%I%])))",
     "node_cpu_limit": "kube_node_status_capacity{resource='cpu'} * 1000",
