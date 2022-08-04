@@ -6,9 +6,8 @@ import smart_open
 from abc import abstractmethod, ABC
 from botocore.config import Config
 from botocore.exceptions import ClientError
-from pathlib import Path
 
-from agent import constants, monitoring
+from agent import constants, monitoring, tools
 from agent.config_provider import config_provider
 from agent.logger import logger
 
@@ -53,12 +52,12 @@ class S3DataSender(DataSender):
                 fout.write('{')
 
                 first = True
-                for s in DataGenerator.generate_data(dir_path):
+                for line in tools.generate_files_data(dir_path):
                     if first:
                         first = False
                     else:
                         fout.write(',')
-                    fout.write(s)
+                    fout.write(line)
 
                 fout.write('}')
         except ClientError as e:
@@ -73,13 +72,10 @@ class S3DataSender(DataSender):
         return True
 
     def _get_bucket_file_url(self, target_file: str) -> str:
-        return f's3://{self.bucket}/{self._get_target_file_path(target_file)}'
-
-    def _get_target_file_path(self, filename: str) -> str:
-        return f'{self._get_dir()}/{filename}'
+        return f's3://{self.bucket}/{self._get_customer_dir()}/{target_file}'
 
     @staticmethod
-    def _get_dir() -> str:
+    def _get_customer_dir() -> str:
         return f'{config_provider["aws_account_id"]}__{config_provider["aws_linked_account_id"]}/{config_provider["cluster_name"]}'
 
 
@@ -97,20 +93,11 @@ class DummySender(DataSender):
             f.write('{')
 
             first = True
-            for s in DataGenerator.generate_data(dir_path):
+            for line in tools.generate_files_data(dir_path):
                 if first:
                     first = False
                 else:
                     f.write(',')
-                f.write(s)
+                f.write(line)
 
             f.write('}')
-
-
-class DataGenerator:
-    @staticmethod
-    def generate_data(metrics_dir: str) -> str:
-        for file in os.listdir(metrics_dir):
-            if file.endswith('.json'):
-                with open(os.path.join(metrics_dir, file), 'r') as f:
-                    yield f'"{Path(file).stem}": {f.read()}'
